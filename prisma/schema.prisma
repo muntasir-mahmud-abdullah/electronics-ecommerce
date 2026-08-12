@@ -1,0 +1,401 @@
+// GadgetHub — Prisma Schema (MVP)
+// Dynamic attribute model: categories map to attribute groups, variants link to attribute values
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────
+// AUTH & USERS
+// ─────────────────────────────────────────
+
+enum Role {
+  SUPER_ADMIN
+  MANAGER
+  CUSTOMER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  phone        String?  @unique
+  name         String
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cart     Cart?
+  orders   Order[]
+  wishlist WishlistItem[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────
+// CATALOG
+// ─────────────────────────────────────────
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  prefix      String   @db.VarChar(3) // e.g. "SM" for Smartphone
+  description String?
+  image       String?
+  icon        String?
+  parentId    String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent   Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryChildren")
+
+  products       Product[]
+  attributeMaps  CategoryAttributeMap[]
+
+  @@index([parentId])
+  @@map("categories")
+}
+
+model Brand {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  logo        String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@map("brands")
+}
+
+// ─────────────────────────────────────────
+// DYNAMIC ATTRIBUTE SYSTEM
+// ─────────────────────────────────────────
+
+model AttributeGroup {
+  id                String  @id @default(cuid())
+  name              String  // e.g. "RAM", "Storage", "Refresh Rate"
+  unit              String? // e.g. "GB", "Hz", "inches"
+  isFilterable      Boolean @default(true)
+  isVariantDefining Boolean @default(false) // if true, different values = different variants
+  sortOrder         Int     @default(0)
+
+  values          AttributeValue[]
+  categoryMaps    CategoryAttributeMap[]
+
+  @@map("attribute_groups")
+}
+
+model AttributeValue {
+  id       String @id @default(cuid())
+  groupId  String
+  value    String // e.g. "16GB", "512GB SSD", "144Hz"
+  sortOrder Int   @default(0)
+
+  group            AttributeGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  productAttributes ProductAttribute[]
+
+  @@unique([groupId, value])
+  @@index([groupId])
+  @@map("attribute_values")
+}
+
+// Which attribute groups apply to which categories (drives filters + spec table)
+model CategoryAttributeMap {
+  id               String @id @default(cuid())
+  categoryId       String
+  attributeGroupId String
+  isFilterable     Boolean @default(true)
+  displayOrder     Int     @default(0)
+
+  category       Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  attributeGroup AttributeGroup @relation(fields: [attributeGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, attributeGroupId])
+  @@index([categoryId])
+  @@map("category_attribute_maps")
+}
+
+// ─────────────────────────────────────────
+// PRODUCTS & VARIANTS
+// ─────────────────────────────────────────
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum ProductCondition {
+  NEW
+  OPEN_BOX
+  REFURBISHED
+}
+
+model Product {
+  id              String          @id @default(cuid())
+  name            String
+  slug            String          @unique
+  description     String?         @db.Text
+  categoryId      String
+  brandId         String?
+  status          ProductStatus   @default(DRAFT)
+  condition       ProductCondition @default(NEW)
+  warrantyMonths  Int             @default(12) // warranty in months
+  warrantyNote    String?         // e.g. "Official brand warranty"
+  useCaseTags     String[]        // e.g. ["gaming", "study", "work"]
+  isFeatured      Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  category Category        @relation(fields: [categoryId], references: [id])
+  brand    Brand?          @relation(fields: [brandId], references: [id])
+  variants ProductVariant[]
+  media    ProductMedia[]
+
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([status])
+  @@map("products")
+}
+
+model ProductVariant {
+  id         String   @id @default(cuid())
+  productId  String
+  sku        String   @unique
+  price      Decimal  @db.Decimal(10, 2)
+  salePrice  Decimal? @db.Decimal(10, 2)
+  stock      Int      @default(0)
+  isActive   Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  product    Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attributes ProductAttribute[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  wishlist   WishlistItem[]
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+// Join table: variant → attribute value (e.g. variant has RAM=16GB, Storage=512GB)
+model ProductAttribute {
+  id               String @id @default(cuid())
+  variantId        String
+  attributeValueId String
+
+  variant        ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  attributeValue AttributeValue @relation(fields: [attributeValueId], references: [id])
+
+  @@unique([variantId, attributeValueId])
+  @@index([variantId])
+  @@map("product_attributes")
+}
+
+model ProductMedia {
+  id        String   @id @default(cuid())
+  productId String
+  url       String   // Cloudinary URL
+  publicId  String?  // Cloudinary public_id for deletion
+  altText   String?
+  isPrimary Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_media")
+}
+
+// ─────────────────────────────────────────
+// CART
+// ─────────────────────────────────────────
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String?  @unique // null for guest carts
+  sessionId String?  @unique // for guest carts
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  variantId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@unique([cartId, variantId])
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+// ─────────────────────────────────────────
+// WISHLIST
+// ─────────────────────────────────────────
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  variantId String
+  createdAt DateTime @default(now())
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@unique([userId, variantId])
+  @@index([userId])
+  @@map("wishlist_items")
+}
+
+// ─────────────────────────────────────────
+// ORDERS
+// ─────────────────────────────────────────
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum FulfillmentStatus {
+  UNFULFILLED
+  PROCESSING
+  FULFILLED
+  RETURNED
+}
+
+enum PaymentMethod {
+  COD
+  MOCK_CARD
+  BANK_TRANSFER
+}
+
+model Order {
+  id                String            @id @default(cuid())
+  orderNumber       String            @unique
+  userId            String?           // null for guest orders
+  status            OrderStatus       @default(PENDING)
+  paymentStatus     PaymentStatus     @default(PENDING)
+  fulfillmentStatus FulfillmentStatus @default(UNFULFILLED)
+
+  // Address snapshot (denormalized at order time)
+  shippingName    String
+  shippingPhone   String
+  shippingEmail   String?
+  shippingAddress String
+  shippingCity    String
+  shippingZip     String?
+  orderNote       String?
+
+  subtotal        Decimal @db.Decimal(10, 2)
+  shippingCost    Decimal @db.Decimal(10, 2) @default(0)
+  total           Decimal @db.Decimal(10, 2)
+  paymentMethod   PaymentMethod @default(COD)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User?               @relation(fields: [userId], references: [id])
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+  payment       Payment?
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  variantId String
+
+  // Snapshot at order time (price/name never changes for historical orders)
+  productName    String
+  variantLabel   String // e.g. "16GB / 512GB / Black"
+  unitPrice      Decimal @db.Decimal(10, 2)
+  quantity       Int
+  subtotal       Decimal @db.Decimal(10, 2)
+  imageUrl       String?
+
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id         String      @id @default(cuid())
+  orderId    String
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+  note       String?
+  actorId    String?     // userId who made the change
+  createdAt  DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_status_history")
+}
+
+// ─────────────────────────────────────────
+// PAYMENTS
+// ─────────────────────────────────────────
+
+model Payment {
+  id        String        @id @default(cuid())
+  orderId   String        @unique
+  method    PaymentMethod
+  amount    Decimal       @db.Decimal(10, 2)
+  status    PaymentStatus @default(PENDING)
+  reference String?       // payment reference / transaction ID
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}

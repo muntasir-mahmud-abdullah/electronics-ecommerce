@@ -1,26 +1,60 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-background: hsl(224 71% 4%);
+  --color-foreground: hsl(213 31% 91%);
+  
+  --color-card: hsl(224 71% 4%);
+  --color-card-foreground: hsl(213 31% 91%);
+  
+  --color-popover: hsl(224 71% 4%);
+  --color-popover-foreground: hsl(213 31% 91%);
+  
+  --color-primary: hsl(252 87% 65%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  
+  --color-secondary: hsl(222 47% 11%);
+  --color-secondary-foreground: hsl(210 40% 98%);
+  
+  --color-muted: hsl(223 47% 11%);
+  --color-muted-foreground: hsl(215 20.2% 65.1%);
+  
+  --color-accent: hsl(216 34% 17%);
+  --color-accent-foreground: hsl(210 40% 98%);
+  
+  --color-destructive: hsl(0 63% 31%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+  
+  --color-border: hsl(216 34% 17%);
+  --color-input: hsl(216 34% 17%);
+  --color-ring: hsl(252 87% 65%);
+  
+  --radius: 0.75rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-background to-background min-h-screen;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Glassmorphism utilities */
+@utility glass {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10;
+}
+@utility glass-card {
+  @apply bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl;
+}
+@utility glass-panel {
+  @apply bg-indigo-950/30 backdrop-blur-xl border border-indigo-500/20 shadow-2xl;
+}
+@utility text-glow {
+  text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+}
+@utility text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400;
 }
