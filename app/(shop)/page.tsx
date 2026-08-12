@@ -23,42 +23,42 @@ const CATEGORIES = [
 const LAB_SETUPS = [
   {
     title: "Creative Workspace",
-    description: "Designed for monitor, studio workflows & 2070 GR cores.",
+    description: "Designed for intensive render operations & 2070 GB video edit.",
     href: "/products",
-    bg: "from-indigo-900/80 to-[#0A0C14]",
+    bg: "from-slate-800 to-[#111827]",
     accent: "#00D4E8",
   },
   {
     title: "Competitive Esports Setup",
-    description: "Max frame-rates, 360Hz displays, top-tier pro accessories.",
+    description: "Max frame rates, 360Hz displays, low-latency controllers.",
     href: "/products?category=gaming",
-    bg: "from-cyan-900/80 to-[#0A0C14]",
+    bg: "from-sky-900 to-[#111827]",
     accent: "#00D4E8",
   },
   {
     title: "Audio & Creator Lab",
-    description: "Perfect studio setups with lossless recording capabilities.",
+    description: "Perfect studio setups with spatial recording capabilities.",
     href: "/products?category=audio",
-    bg: "from-violet-900/80 to-[#0A0C14]",
-    accent: "#A78BFA",
+    bg: "from-stone-800 to-[#111827]",
+    accent: "#00D4E8",
   },
 ];
 
 const BEST_SELLERS = [
   {
-    badge: "BEST SELLERS",
+    badge: "BEST SELLER",
     badgeColor: "#00D4E8",
-    category: "HIGH-RES AUDIO",
+    category: "CIRCU SOUNDLABS",
     name: "Acoustix Pro Max",
     price: 349,
     rating: 4.5,
-    reviews: 513,
+    reviews: 142,
     specs: ["Active ANC", "Hi-Res Audio", "60h Battery"],
   },
   {
     badge: null,
     badgeColor: null,
-    category: "COMPUTING",
+    category: "X-COMPUTE",
     name: "Quantum Pro Rig",
     price: 1899,
     rating: 4.0,
@@ -67,23 +67,23 @@ const BEST_SELLERS = [
   },
   {
     badge: "PRO CHOICE",
-    badgeColor: "#7C3AED",
-    category: "MOBILE",
+    badgeColor: "#00D4E8",
+    category: "VERTEX",
     name: "Vanguard Book Pro",
     price: 1249,
     rating: 4.5,
-    reviews: 1753,
-    specs: ["OLED 120Hz", "8M Pro Chip", "1TB SSD"],
+    reviews: 213,
+    specs: ["OLED 120Hz", "M4 Pro Chip", "1TB SSD"],
   },
   {
     badge: null,
     badgeColor: null,
-    category: "BIOMETRIC WEAR",
+    category: "CIRCU ENERGY",
     name: "Apex Chrono Chronometer",
     price: 299,
     rating: 4.0,
-    reviews: 340,
-    specs: ["Bio-Detect v2", "AOD Sapphire", "30d Water"],
+    reviews: 54,
+    specs: ["Bio-Sensor v2", "AOD Sapphire", "30d Water"],
   },
 ];
 
@@ -94,7 +94,7 @@ function StarRating({ rating }: { rating: number }) {
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
-          className={`w-3 h-3 ${i <= Math.floor(rating) ? "fill-[#00D4E8] text-[#00D4E8]" : i - 0.5 <= rating ? "fill-[#00D4E8]/50 text-[#00D4E8]/50" : "fill-[#1E2235] text-[#1E2235]"}`}
+          className={`w-3 h-3 ${i <= Math.floor(rating) ? "fill-[#F59E0B] text-[#F59E0B]" : i - 0.5 <= rating ? "fill-[#F59E0B]/50 text-[#F59E0B]/50" : "fill-[#E5E7EB] text-[#E5E7EB]"}`}
         />
       ))}
     </div>
@@ -103,38 +103,43 @@ function StarRating({ rating }: { rating: number }) {
 
 function ProductCard({ product }: { product: (typeof BEST_SELLERS)[0] }) {
   return (
-    <div className="flex-shrink-0 w-[220px] bg-[#111320] border border-[#1E2235] rounded-xl overflow-hidden hover:border-[#00D4E8]/30 transition-colors group">
+    <div className="flex-shrink-0 w-[240px] bg-white border border-[#E5E7EB] rounded-xl overflow-hidden hover:border-[#00D4E8]/50 transition-colors group p-4 flex flex-col">
       {/* Image placeholder */}
-      <div className="relative h-44 bg-[#0D0F1A] flex items-center justify-center">
+      <div className="relative h-[200px] bg-[#F9FAFB] rounded-lg mb-4 flex items-center justify-center p-4">
         {product.badge && (
           <span
-            className="absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded"
-            style={{ color: product.badgeColor!, border: `1px solid ${product.badgeColor}`, background: `${product.badgeColor}15` }}
+            className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded"
+            style={{ color: product.badgeColor!, border: `1px solid ${product.badgeColor}`, background: "white" }}
           >
             {product.badge}
           </span>
         )}
-        <div className="w-24 h-24 rounded-full bg-[#1A1D2E] flex items-center justify-center opacity-60 group-hover:opacity-90 transition-opacity">
-          <Star className="w-10 h-10 text-[#00D4E8]" />
+        <div className="w-full h-full bg-[#F4F5F7] rounded flex items-center justify-center mix-blend-multiply group-hover:scale-105 transition-transform duration-500">
+          <div className="text-[#9CA3AF] text-xs">No Image</div>
         </div>
       </div>
 
-      <div className="p-4">
-        <p className="text-[10px] font-bold text-[#00D4E8] tracking-widest mb-1">{product.category}</p>
-        <h4 className="text-white font-semibold text-sm mb-2 leading-snug">{product.name}</h4>
-        <p className="text-white font-bold text-xl mb-2">${product.price.toLocaleString()}</p>
-        <div className="flex items-center gap-1.5 mb-3">
-          <StarRating rating={product.rating} />
-          <span className="text-[#8892A4] text-[10px]">({product.reviews.toLocaleString()})</span>
+      <div className="flex-1 flex flex-col">
+        <p className="text-[10px] font-bold text-[#6B7280] tracking-widest mb-1">{product.category}</p>
+        <h4 className="text-[#111827] font-bold text-[15px] mb-2 leading-snug line-clamp-2">{product.name}</h4>
+        
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-[#111827] font-black text-[20px]">${product.price.toLocaleString()}</p>
+          <div className="flex items-center gap-1.5">
+            <StarRating rating={product.rating} />
+            <span className="text-[#6B7280] text-[11px] font-medium">({product.reviews.toLocaleString()})</span>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-1 mb-4">
+
+        <div className="flex flex-wrap gap-1.5 mb-5">
           {product.specs.map((s) => (
-            <span key={s} className="text-[9px] px-1.5 py-0.5 rounded bg-[#1A1D2E] border border-[#1E2235] text-[#8892A4] uppercase tracking-wide">
+            <span key={s} className="text-[10px] px-2 py-1 rounded bg-white border border-[#E5E7EB] text-[#4B5563] font-medium">
               {s}
             </span>
           ))}
         </div>
-        <button className="w-full bg-[#00D4E8] hover:bg-[#00BDD0] text-[#0A0C14] font-bold text-xs py-2.5 rounded-md transition-colors">
+        
+        <button className="mt-auto w-full bg-[#0A0C14] hover:bg-[#1E2235] text-white font-semibold text-[13px] py-3 rounded-lg transition-colors">
           Add to Cart
         </button>
       </div>
@@ -145,7 +150,7 @@ function ProductCard({ product }: { product: (typeof BEST_SELLERS)[0] }) {
 // --- Page ---
 export default function Home() {
   return (
-    <div className="bg-[#0A0C14] min-h-screen">
+    <div className="bg-[#F9FAFB] min-h-screen">
       {/* ── 1. HERO ───────────────────────────────────────────────────── */}
       <section className="relative w-full min-h-[520px] flex items-center overflow-hidden bg-[#0A0C14]">
         {/* BG gradient layer */}
@@ -171,7 +176,7 @@ export default function Home() {
               <span className="text-[#00D4E8]">Zero Distortions.</span>
             </h1>
             <p className="text-[#8892A4] text-[15px] mb-8 leading-relaxed max-w-sm">
-              Presenting the GadgetHub SoundLabs Pro Series. Engineered with 50mm electrostatic transducers and real-time environment mapping.
+              Presenting the Circu SoundLabs Pro Series. Engineered with 50mm electrostatic transducers and real-time environment mapping.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -208,23 +213,23 @@ export default function Home() {
       </section>
 
       {/* ── 3. FEATURED CATEGORIES ───────────────────────────────────── */}
-      <section className="max-w-[1320px] mx-auto px-6 py-16">
-        <h2 className="text-2xl font-bold text-white mb-1">Featured Hardware Categories</h2>
-        <p className="text-[#8892A4] text-sm mb-8">Engineered devices categorized by architectural standards.</p>
+      <section className="max-w-[1320px] mx-auto px-6 pt-16 pb-12">
+        <h2 className="text-[22px] font-black text-[#111827] tracking-tight mb-1">Featured Hardware Categories</h2>
+        <p className="text-[#6B7280] text-[13px] mb-8">Engineered devices categorized by architectural standards.</p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {CATEGORIES.map(({ icon: Icon, label, count, slug }) => (
             <Link
               key={slug}
               href={`/products?category=${slug}`}
-              className="group flex flex-col items-center gap-3 p-5 rounded-xl bg-[#111320] border border-[#1E2235] hover:border-[#00D4E8]/40 hover:bg-[#131625] transition-all"
+              className="group flex flex-col items-center gap-3 p-6 rounded-xl bg-white border border-[#E5E7EB] hover:border-[#00D4E8] hover:shadow-sm transition-all"
             >
-              <div className="w-10 h-10 flex items-center justify-center text-[#8892A4] group-hover:text-[#00D4E8] transition-colors">
+              <div className="w-10 h-10 flex items-center justify-center text-[#4B5563] group-hover:text-[#00D4E8] transition-colors">
                 <Icon className="w-6 h-6" />
               </div>
               <div className="text-center">
-                <p className="text-white text-[13px] font-semibold leading-tight">{label}</p>
-                <p className="text-[#8892A4] text-[11px] mt-0.5">{count} Models</p>
+                <p className="text-[#111827] text-[13px] font-bold leading-tight">{label}</p>
+                <p className="text-[#9CA3AF] text-[11px] mt-0.5">{count} Models</p>
               </div>
             </Link>
           ))}
@@ -232,29 +237,29 @@ export default function Home() {
       </section>
 
       {/* ── 4. SHOP BY LAB & SETUP ───────────────────────────────────── */}
-      <section className="max-w-[1320px] mx-auto px-6 pb-16">
-        <h2 className="text-2xl font-bold text-white mb-1">Shop by Lab & Setup</h2>
-        <p className="text-[#8892A4] text-sm mb-8">Hardware packages pre-configured for ultimate work workflows.</p>
+      <section className="max-w-[1320px] mx-auto px-6 py-12">
+        <h2 className="text-[22px] font-black text-[#111827] tracking-tight mb-1">Shop by Lab & Setup</h2>
+        <p className="text-[#6B7280] text-[13px] mb-8">Hardware packages pre-configured for ultimate work workflows.</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {LAB_SETUPS.map((lab) => (
             <Link
               key={lab.title}
               href={lab.href}
-              className="group relative rounded-xl overflow-hidden border border-[#1E2235] hover:border-[#00D4E8]/30 transition-colors aspect-[4/3] flex flex-col justify-end p-6 bg-[#111320]"
+              className="group relative rounded-xl overflow-hidden border border-[#E5E7EB] hover:border-[#00D4E8] transition-colors aspect-[1.4] flex flex-col justify-end p-6 bg-white"
             >
-              {/* Gradient bg overlay */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${lab.bg} opacity-90`} />
+              {/* Gradient bg overlay mimicking images */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${lab.bg} opacity-95`} />
               {/* Decorative grid dots */}
               <div
                 className="absolute inset-0 opacity-10"
                 style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "24px 24px" }}
               />
               <div className="relative z-10">
-                <h3 className="text-white font-bold text-lg mb-1">{lab.title}</h3>
-                <p className="text-[#8892A4] text-xs mb-4 leading-relaxed">{lab.description}</p>
+                <h3 className="text-white font-bold text-[17px] mb-1.5">{lab.title}</h3>
+                <p className="text-[#9CA3AF] text-[12px] mb-4 leading-relaxed max-w-[200px]">{lab.description}</p>
                 <span
-                  className="inline-flex items-center gap-1 text-xs font-bold tracking-wide transition-all"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold tracking-wide transition-all uppercase"
                   style={{ color: lab.accent }}
                 >
                   Explore Build Packages
@@ -267,21 +272,21 @@ export default function Home() {
       </section>
 
       {/* ── 5. BEST SELLERS ──────────────────────────────────────────── */}
-      <section className="max-w-[1320px] mx-auto px-6 pb-16">
+      <section className="max-w-[1320px] mx-auto px-6 py-12 pb-20">
         <div className="flex items-end justify-between mb-1">
-          <h2 className="text-2xl font-bold text-white">Best Sellers in Performance</h2>
+          <h2 className="text-[22px] font-black text-[#111827] tracking-tight">Best Sellers in Performance</h2>
           <div className="flex gap-2">
-            <button className="w-8 h-8 rounded-full border border-[#1E2235] bg-[#111320] flex items-center justify-center text-[#8892A4] hover:text-white hover:border-[#2E3555] transition-all">
+            <button className="w-8 h-8 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#4B5563] hover:text-[#111827] hover:border-[#D1D5DB] transition-all">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button className="w-8 h-8 rounded-full border border-[#1E2235] bg-[#111320] flex items-center justify-center text-[#8892A4] hover:text-white hover:border-[#2E3555] transition-all">
+            <button className="w-8 h-8 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#4B5563] hover:text-[#111827] hover:border-[#D1D5DB] transition-all">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
-        <p className="text-[#8892A4] text-sm mb-8">Top-rated tech built for reliability & speed.</p>
+        <p className="text-[#6B7280] text-[13px] mb-8">Top-rated tech built for reliability & speed.</p>
 
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#1E2235]">
+        <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-[#E5E7EB]">
           {BEST_SELLERS.map((product) => (
             <ProductCard key={product.name} product={product} />
           ))}
