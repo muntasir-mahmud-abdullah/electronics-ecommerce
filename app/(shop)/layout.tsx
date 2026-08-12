@@ -1,4 +1,4 @@
-import { ReactNode } from "next";
+import { ReactNode } from "react";
 import { Navbar } from "@/components/Navbar";
 
 export default function ShopLayout({ children }: { children: ReactNode }) {

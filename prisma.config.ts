@@ -8,6 +8,7 @@ export default defineConfig({
   },
   datasource: {
     url: process.env.DATABASE_URL,
+    // @ts-ignore
     adapter: () => {
       const neon = new PrismaNeon({ connectionString: process.env.DATABASE_URL! });
       return neon;

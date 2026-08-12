@@ -8,7 +8,9 @@ import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store";
 import { addToCompare } from "@/store/slices/compare";
 
-export default function ProductsPage() {
+import { Suspense } from "react";
+
+function ProductsContent() {
   const searchParams = useSearchParams();
   const category = searchParams.get("category");
   
@@ -154,5 +156,13 @@ export default function ProductsPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[70vh] flex items-center justify-center text-indigo-400 animate-pulse">Loading products...</div>}>
+      <ProductsContent />
+    </Suspense>
   );
 }

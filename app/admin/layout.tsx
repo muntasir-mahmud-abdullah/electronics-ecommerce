@@ -1,4 +1,4 @@
-import { ReactNode } from "next";
+import { ReactNode } from "react";
 import Link from "next/link";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
