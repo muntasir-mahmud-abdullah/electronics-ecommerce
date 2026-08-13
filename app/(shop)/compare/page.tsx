@@ -5,12 +5,53 @@ import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store";
 import { removeFromCompare, clearCompare } from "@/store/slices/compare";
-import { X, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { X, ArrowLeft, Star, Zap } from "lucide-react";
+
+// Static spec data for demo presentation when DB attributes are sparse
+const STATIC_SPEC_GROUPS: { group: string; rows: string[] }[] = [
+  {
+    group: "Acoustics & Transducers",
+    rows: ["Transducer Element", "Frequency Range", "Acoustic Impedance"],
+  },
+  {
+    group: "Performance & Battery",
+    rows: ["Processor Core", "Continuous Playback", "Connectivity"],
+  },
+  {
+    group: "Physical Mechanics",
+    rows: ["Net Weight", "Memory Cushioning"],
+  },
+];
+
+// Values we highlight in cyan (when they differ significantly)
+function isHighlightValue(value: string): boolean {
+  // Highlight values that contain Hz/Hours/Rating suffix — matches Figma logic
+  return /hz|hours|rating/i.test(value);
+}
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          className={`w-3 h-3 ${
+            i <= Math.floor(rating)
+              ? "fill-[#F59E0B] text-[#F59E0B]"
+              : i - 0.5 <= rating
+              ? "fill-[#F59E0B]/50 text-[#F59E0B]/50"
+              : "fill-[#E5E7EB] text-[#E5E7EB]"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function ComparePage() {
   const compareIds = useSelector((state: RootState) => state.compare.productIds);
   const dispatch = useDispatch<AppDispatch>();
-  
+
   const [products, setProducts] = useState<any[]>([]);
   const [allAttributeGroups, setAllAttributeGroups] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +64,6 @@ export default function ComparePage() {
         setLoading(false);
         return;
       }
-      
       setLoading(true);
       try {
         const res = await fetch(`/api/products/compare?ids=${compareIds.join(",")}`);
@@ -39,131 +79,240 @@ export default function ComparePage() {
     fetchCompareData();
   }, [compareIds]);
 
-  if (loading) return <div className="min-h-[70vh] flex items-center justify-center text-indigo-400 animate-pulse">Loading comparison...</div>;
+  /* ── LOADING ── */
+  if (loading)
+    return (
+      <div className="min-h-[70vh] bg-[#F9FAFB] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-[#00D4E8] border-t-transparent animate-spin" />
+          <span className="text-[#6B7280] text-sm font-medium">Loading comparison...</span>
+        </div>
+      </div>
+    );
 
+  /* ── EMPTY STATE ── */
   if (products.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <div className="glass-panel max-w-2xl mx-auto p-12 rounded-3xl">
-          <h2 className="text-3xl font-bold text-white mb-4">Compare Specs</h2>
-          <p className="text-gray-400 mb-8">You haven't added any products to compare yet. Browse our catalog and click the compare icon to add up to 3 products.</p>
-          <Link href="/products" className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)]">
-            <ArrowLeft className="w-5 h-5" />
-            Back to Products
+      <div className="min-h-[70vh] bg-[#F9FAFB] flex items-center justify-center px-6">
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl max-w-lg w-full p-12 flex flex-col items-center text-center">
+          <div className="w-14 h-14 rounded-full bg-[#F0FFFE] border border-[#00D4E8]/30 flex items-center justify-center mb-5">
+            <Zap className="w-7 h-7 text-[#00D4E8]" />
+          </div>
+          <h2 className="text-[22px] font-black text-[#111827] tracking-tight mb-3">No Products to Compare</h2>
+          <p className="text-[#6B7280] text-sm mb-8 leading-relaxed">
+            You haven&apos;t added any products to your comparison lab yet. Browse the catalog and click the compare icon to add up to 3 products.
+          </p>
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-2 bg-[#0A0C14] hover:bg-[#1E2235] text-white font-bold px-6 py-3 rounded-lg text-sm transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Browse Products
           </Link>
         </div>
       </div>
     );
   }
 
+  /* ── Build spec rows from live API groups, fallback to static if empty ── */
+  const specRows: { group: string; rows: string[] }[] = [];
+
+  if (allAttributeGroups.length > 0) {
+    specRows.push({ group: "Technical Specifications", rows: allAttributeGroups });
+  } else {
+    specRows.push(...STATIC_SPEC_GROUPS);
+  }
+
+  /* ── COMPARE TABLE ── */
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="flex justify-between items-end mb-8">
-        <div>
-          <h1 className="text-4xl font-bold text-white mb-2">Compare Products</h1>
-          <p className="text-gray-400">Side-by-side technical specifications</p>
+    <div className="bg-[#F9FAFB] min-h-screen pb-32">
+      <div className="max-w-[1320px] mx-auto px-6 pt-8 pb-16">
+        {/* Header */}
+        <div className="mb-8">
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-1.5 text-[12px] text-[#6B7280] hover:text-[#111827] transition-colors mb-4"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to Listing
+          </Link>
+          <h1 className="text-[28px] font-black text-[#111827] tracking-tight">Side-by-Side Spec Comparison</h1>
         </div>
-        <button 
-          onClick={() => dispatch(clearCompare())}
-          className="text-sm text-red-400 hover:text-red-300 font-medium px-4 py-2 glass rounded-lg border border-red-500/20 hover:border-red-500/40 transition-colors"
-        >
-          Clear All
-        </button>
+
+        {/* Main comparison card */}
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden overflow-x-auto">
+          <table className="w-full border-collapse min-w-[700px]">
+            {/* ── PRODUCT HEADER ROW ── */}
+            <thead>
+              <tr className="border-b border-[#E5E7EB]">
+                {/* Label column */}
+                <th className="w-[180px] p-6 text-left align-middle">
+                  <span className="text-[12px] font-bold text-[#6B7280] uppercase tracking-widest">
+                    Attribute comparison
+                  </span>
+                </th>
+
+                {/* Product columns */}
+                {products.map((p) => (
+                  <th key={p.id} className="p-5 align-top border-l border-[#E5E7EB] w-[220px]">
+                    <div className="flex items-start gap-4">
+                      {/* Product image */}
+                      <div className="w-[90px] h-[90px] flex-shrink-0 bg-[#F9FAFB] rounded-xl flex items-center justify-center overflow-hidden border border-[#E5E7EB]">
+                        {p.image ? (
+                          <img src={p.image} alt={p.name} className="w-full h-full object-contain mix-blend-multiply p-2" />
+                        ) : (
+                          <div className="text-[#9CA3AF] text-xs text-center px-2">No Image</div>
+                        )}
+                      </div>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0 pt-1">
+                        <div className="flex items-start justify-between gap-1">
+                          <Link
+                            href={`/products/${p.slug}`}
+                            className="text-[13px] font-bold text-[#111827] hover:text-[#00D4E8] transition-colors leading-snug truncate max-w-[110px] block"
+                          >
+                            {p.name}
+                          </Link>
+                          <button
+                            onClick={() => dispatch(removeFromCompare(p.id))}
+                            className="flex-shrink-0 w-5 h-5 rounded-full bg-[#F3F4F6] hover:bg-[#FEE2E2] flex items-center justify-center text-[#9CA3AF] hover:text-[#EF4444] transition-all"
+                            title="Remove"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <p className="text-[18px] font-black text-[#111827] mt-1">${Number(p.price || 0).toLocaleString()}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <StarRating rating={4.5} />
+                          <span className="text-[10px] text-[#6B7280]">(142)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </th>
+                ))}
+
+                {/* Empty slot columns */}
+                {[...Array(Math.max(0, 3 - products.length))].map((_, i) => (
+                  <th key={`empty-head-${i}`} className="p-5 border-l border-[#E5E7EB] align-middle">
+                    <Link
+                      href="/products"
+                      className="flex flex-col items-center justify-center gap-2 h-[90px] border-2 border-dashed border-[#E5E7EB] rounded-xl text-[#9CA3AF] hover:border-[#00D4E8] hover:text-[#00D4E8] transition-all"
+                    >
+                      <span className="text-2xl font-light leading-none">+</span>
+                      <span className="text-[11px] font-medium">Add Product</span>
+                    </Link>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            {/* ── SPEC ROWS ── */}
+            <tbody>
+              {specRows.map(({ group, rows }) => (
+                <>
+                  {/* Group header */}
+                  <tr key={`group-${group}`} className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                    <td
+                      colSpan={4}
+                      className="px-6 py-3 text-[12px] font-black text-[#111827] uppercase tracking-wider"
+                    >
+                      {group}
+                    </td>
+                  </tr>
+
+                  {/* Spec value rows */}
+                  {rows.map((rowLabel, rowIdx) => {
+                    // Check if all values differ — to highlight
+                    const values = products.map((p) => p.specs?.[rowLabel] || "—");
+                    const allUnique = new Set(values.filter((v) => v !== "—")).size === values.filter((v) => v !== "—").length;
+                    const shouldHighlight = allUnique && values.every((v) => v !== "—") && isHighlightValue(values[0] || "");
+
+                    return (
+                      <tr key={rowLabel} className={`border-b border-[#E5E7EB] ${rowIdx % 2 === 0 ? "bg-white" : "bg-[#FAFAFA]"}`}>
+                        {/* Label */}
+                        <td className="px-6 py-3 text-[12px] text-[#6B7280]">{rowLabel}</td>
+
+                        {/* Values */}
+                        {products.map((p) => {
+                          const val = p.specs?.[rowLabel];
+                          const highlight = shouldHighlight && val;
+                          return (
+                            <td
+                              key={`${p.id}-${rowLabel}`}
+                              className={`px-5 py-3 border-l border-[#E5E7EB] text-[13px] font-semibold ${
+                                highlight ? "text-[#00D4E8] bg-[#F0FFFE]" : val ? "text-[#111827]" : "text-[#9CA3AF]"
+                              }`}
+                            >
+                              {val || "—"}
+                            </td>
+                          );
+                        })}
+
+                        {/* Empty slots */}
+                        {[...Array(Math.max(0, 3 - products.length))].map((_, i) => (
+                          <td key={`empty-val-${rowLabel}-${i}`} className="border-l border-[#E5E7EB]" />
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </>
+              ))}
+
+              {/* ── ADD TO CART ROW ── */}
+              <tr className="border-t border-[#E5E7EB]">
+                <td className="p-5" />
+                {products.map((p) => (
+                  <td key={`cart-${p.id}`} className="p-5 border-l border-[#E5E7EB]">
+                    <Link
+                      href={`/products/${p.slug}`}
+                      className="block w-full bg-[#0A0C14] hover:bg-[#1E2235] text-white text-center font-semibold text-[13px] py-3 rounded-lg transition-colors"
+                    >
+                      Add product to Cart
+                    </Link>
+                  </td>
+                ))}
+                {[...Array(Math.max(0, 3 - products.length))].map((_, i) => (
+                  <td key={`empty-cart-${i}`} className="p-5 border-l border-[#E5E7EB]">
+                    <div className="w-full h-[46px] border-2 border-dashed border-[#E5E7EB] rounded-lg" />
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div className="glass-panel rounded-3xl overflow-hidden border-white/10 overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[800px]">
-          <thead>
-            <tr>
-              <th className="w-48 p-6 bg-black/40 border-b border-r border-white/10 text-gray-400 font-medium uppercase tracking-wider text-xs">
-                Product
-              </th>
+      {/* ── STICKY BOTTOM BAR ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#1E2235] bg-[#0A0C14]/95 backdrop-blur-xl px-6 py-4">
+        <div className="max-w-[1320px] mx-auto flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4 flex-wrap">
+            <span className="text-[12px] font-black text-white uppercase tracking-wider">Active Specs Lab</span>
+            <div className="flex items-center gap-2 flex-wrap">
               {products.map((p) => (
-                <th key={p.id} className="p-6 bg-black/20 border-b border-white/10 relative w-64 align-top">
-                  <button 
+                <div
+                  key={p.id}
+                  className="flex items-center gap-1.5 bg-[#111320] border border-[#2E3555] rounded-full px-3 py-1"
+                >
+                  <span className="text-[11px] font-semibold text-[#8892A4] truncate max-w-[80px]">
+                    {p.name?.split(" ").slice(0, 2).join(" ")}
+                  </span>
+                  <button
                     onClick={() => dispatch(removeFromCompare(p.id))}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-red-400 transition-colors bg-white/5 p-1 rounded-full border border-white/10"
-                    title="Remove"
+                    className="text-[#8892A4] hover:text-white transition-colors"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3 h-3" />
                   </button>
-                  <div className="h-40 w-full mb-4 bg-black/40 rounded-xl flex items-center justify-center p-4">
-                    {p.image ? (
-                      <img src={p.image} alt={p.name} className="max-h-full max-w-full object-contain" />
-                    ) : (
-                      <span className="text-gray-600">No Image</span>
-                    )}
-                  </div>
-                  <div className="text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">{p.brand}</div>
-                  <h3 className="text-lg font-bold text-white mb-2 leading-tight">
-                    <Link href={`/products/${p.slug}`} className="hover:text-cyan-400 transition-colors">{p.name}</Link>
-                  </h3>
-                  <div className="text-2xl font-bold text-white mb-4">${Number(p.price || 0).toFixed(2)}</div>
-                  
-                  <Link 
-                    href={`/products/${p.slug}`}
-                    className="block w-full py-2 text-center rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600 hover:text-white transition-all font-medium text-sm"
-                  >
-                    View Details
-                  </Link>
-                </th>
+                </div>
               ))}
-              {/* Fill remaining slots if < 3 products */}
-              {[...Array(3 - products.length)].map((_, i) => (
-                <th key={`empty-${i}`} className="p-6 bg-black/10 border-b border-l border-white/5 align-middle text-center w-64">
-                   <div className="h-40 w-full border-2 border-dashed border-white/10 rounded-xl flex items-center justify-center flex-col gap-2 text-gray-500">
-                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">+</div>
-                      <span className="text-sm font-medium">Add Product</span>
-                   </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {/* Core Specs */}
-            <tr className="bg-white/5">
-              <td colSpan={4} className="px-6 py-3 font-bold text-white text-sm uppercase tracking-wider">General Information</td>
-            </tr>
-            <tr className="hover:bg-white/5 transition-colors">
-              <td className="p-4 px-6 text-gray-400 font-medium border-r border-white/5">Category</td>
-              {products.map(p => <td key={p.id} className="p-4 font-medium text-gray-200">{p.category}</td>)}
-              {[...Array(3 - products.length)].map((_, i) => <td key={`empty-c-${i}`} className="border-l border-white/5" />)}
-            </tr>
-            <tr className="hover:bg-white/5 transition-colors">
-              <td className="p-4 px-6 text-gray-400 font-medium border-r border-white/5">Stock Status</td>
-              {products.map(p => (
-                <td key={p.id} className="p-4 font-medium">
-                  {p.stock > 0 ? (
-                    <span className="text-green-400 flex items-center gap-1 text-sm"><CheckCircle2 className="w-4 h-4"/> In Stock</span>
-                  ) : (
-                    <span className="text-red-400 text-sm">Out of Stock</span>
-                  )}
-                </td>
-              ))}
-              {[...Array(3 - products.length)].map((_, i) => <td key={`empty-s-${i}`} className="border-l border-white/5" />)}
-            </tr>
-
-            {/* Dynamic Attributes */}
-            <tr className="bg-white/5">
-              <td colSpan={4} className="px-6 py-3 font-bold text-white text-sm uppercase tracking-wider">Technical Specifications</td>
-            </tr>
-            {allAttributeGroups.map((group) => (
-              <tr key={group} className="hover:bg-white/5 transition-colors group">
-                <td className="p-4 px-6 text-gray-400 font-medium border-r border-white/5 group-hover:text-indigo-300 transition-colors">{group}</td>
-                {products.map((p) => {
-                  const val = p.specs[group];
-                  // Highlight identical specs vs different specs (optional logic, keeping it simple for now)
-                  return (
-                    <td key={`${p.id}-${group}`} className={`p-4 font-medium ${val ? 'text-gray-200' : 'text-gray-600'}`}>
-                      {val || "—"}
-                    </td>
-                  );
-                })}
-                {[...Array(3 - products.length)].map((_, i) => <td key={`empty-${group}-${i}`} className="border-l border-white/5" />)}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-[12px] text-[#8892A4]">Highlights active differences</span>
+            <button className="bg-[#00D4E8] hover:bg-[#00BDD0] text-[#0A0C14] font-bold text-[12px] px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap">
+              Run Hardware Diagnostics
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
