@@ -2,13 +2,28 @@
 
 import Link from "next/link";
 import { Search, ShoppingCart, User, Menu, Truck, Shield, RotateCcw, Lock, ChevronRight, Star, Headphones, Monitor, Smartphone, Gamepad2, Home, Watch, Cpu } from "lucide-react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/store";
+import { setCart } from "@/store/slices/cart";
+import { useState, useEffect } from "react";
+import { Cart } from "./Cart";
 
 export function Navbar() {
-  const cartItemCount = useSelector((state: RootState) => state.cart.itemCount);
+  const { itemCount: cartItemCount, isLoaded: cartIsLoaded, total: cartTotal } = useSelector((state: RootState) => state.cart);
+  const dispatch = useDispatch<AppDispatch>();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  useEffect(() => {
+    if (!cartIsLoaded) {
+      fetch("/api/cart")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) dispatch(setCart(data));
+        })
+        .catch(console.error);
+    }
+  }, [cartIsLoaded, dispatch]);
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-[#0A0C14]/95 backdrop-blur-xl border-b border-[#1E2235] transition-all duration-300">
@@ -55,7 +70,7 @@ export function Navbar() {
 
           {/* Right Actions */}
           <div className="hidden lg:flex items-center gap-5">
-            <Link href="/cart" className="flex items-center gap-2 text-[#8892A4] hover:text-white transition-colors relative group">
+            <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-2 text-[#8892A4] hover:text-white transition-colors relative group">
               <ShoppingCart className="w-5 h-5" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#00D4E8] text-[#0A0C14] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
@@ -63,9 +78,9 @@ export function Navbar() {
                 </span>
               )}
               <span className="text-sm font-semibold text-white">
-                ${cartItemCount > 0 ? (cartItemCount * 0).toFixed(0) : "0.00"}
+                ${cartTotal.toFixed(0)}
               </span>
-            </Link>
+            </button>
             <Link
               href="/login"
               className="flex items-center gap-1.5 px-3 h-8 rounded-md border border-[#1E2235] bg-[#111320] text-sm text-[#8892A4] hover:text-white hover:border-[#2E3555] transition-all"
@@ -77,14 +92,14 @@ export function Navbar() {
 
           {/* Mobile */}
           <div className="flex lg:hidden items-center gap-3">
-            <Link href="/cart" className="text-[#8892A4] hover:text-white relative">
+            <button onClick={() => setIsCartOpen(true)} className="text-[#8892A4] hover:text-white relative">
               <ShoppingCart className="w-5 h-5" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-[#00D4E8] text-[#0A0C14] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                   {cartItemCount}
                 </span>
               )}
-            </Link>
+            </button>
             <button onClick={() => setMobileOpen(!mobileOpen)} className="text-[#8892A4] hover:text-white">
               <Menu className="w-5 h-5" />
             </button>
@@ -108,6 +123,9 @@ export function Navbar() {
           ))}
         </div>
       )}
+
+      {/* Cart Slide-over */}
+      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </nav>
   );
 }
