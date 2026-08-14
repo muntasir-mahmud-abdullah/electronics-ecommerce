@@ -51,7 +51,7 @@ export function Navbar() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-[#8892A4] hover:text-white transition-colors text-sm font-medium"
+                className="text-[#E2E8F0] hover:text-white transition-colors text-sm font-medium"
               >
                 {link.label}
               </Link>
@@ -70,8 +70,8 @@ export function Navbar() {
 
           {/* Right Actions */}
           <div className="hidden lg:flex items-center gap-5">
-            <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-2 text-[#8892A4] hover:text-white transition-colors relative group">
-              <ShoppingCart className="w-5 h-5" />
+            <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-2 text-[#E2E8F0] hover:text-white transition-colors relative group">
+              <ShoppingCart className="w-4 h-4" color="white" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#00D4E8] text-[#0A0C14] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                   {cartItemCount}
@@ -83,9 +83,9 @@ export function Navbar() {
             </button>
             <Link
               href="/login"
-              className="flex items-center gap-1.5 px-3 h-8 rounded-md border border-[#1E2235] bg-[#111320] text-sm text-[#8892A4] hover:text-white hover:border-[#2E3555] transition-all"
+              className="flex items-center gap-1.5 px-3 h-8 rounded-md border border-[#1E2235] bg-[#111320] text-sm text-[#E2E8F0] hover:text-white hover:border-[#2E3555] transition-all"
             >
-              <User className="w-4 h-4" />
+              <User className="w-4 h-4" color="white" />
               Account
             </Link>
           </div>
