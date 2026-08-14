@@ -43,6 +43,7 @@ const LAB_SETUPS = [
     href: "/products",
     bg: "from-slate-800 to-[#111827]",
     accent: "#00D4E8",
+    image: "/annie-spratt-6pMI--IXV-8-unsplash.jpg",
   },
   {
     title: "Competitive Esports Setup",
@@ -50,6 +51,7 @@ const LAB_SETUPS = [
     href: "/products?category=gaming",
     bg: "from-sky-900 to-[#111827]",
     accent: "#00D4E8",
+    image: "/ella-don-JomkRNkzKhE-unsplash.jpg",
   },
   {
     title: "Audio & Creator Lab",
@@ -57,6 +59,7 @@ const LAB_SETUPS = [
     href: "/products?category=audio",
     bg: "from-stone-800 to-[#111827]",
     accent: "#00D4E8",
+    image: "/luther-yonel-t04qpDs4rYk-unsplash.jpg",
   },
 ];
 
@@ -119,35 +122,34 @@ function StarRating({ rating }: { rating: number }) {
 
 function ProductCard({ product }: { product: (typeof BEST_SELLERS)[0] }) {
   return (
-    <div className="flex-shrink-0 w-[240px] bg-white border border-[#E5E7EB] rounded-xl overflow-hidden hover:border-[#00D4E8]/50 transition-colors group p-4 flex flex-col">
+    <div className="flex-shrink-0 w-[240px] bg-white border border-[#E5E7EB] rounded-lg overflow-hidden hover:border-[#00D4E8]/50 transition-colors group flex flex-col">
       {/* Image placeholder */}
-      <div className="relative h-[200px] bg-[#F9FAFB] rounded-lg mb-4 flex items-center justify-center p-4">
+      <div className="relative h-[200px] bg-[#F9FAFB] rounded-lg flex items-center justify-center">
         {product.badge && (
           <span
-            className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded"
+            className="absolute top-2 bg-blue-50 left-2 text-[10px] font-bold px-2 py-1 rounded"
             style={{
               color: product.badgeColor!,
               border: `1px solid ${product.badgeColor}`,
-              background: "white",
             }}
           >
             {product.badge}
           </span>
         )}
-        <div className="w-full h-full bg-[#F4F5F7] rounded flex items-center justify-center mix-blend-multiply group-hover:scale-105 transition-transform duration-500">
+        <div className="w-full h-full bg-[#F4F5F7] flex items-center justify-center mix-blend-multiply transition-transform duration-500">
           <div className="text-[#9CA3AF] text-xs">No Image</div>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col">
-        <p className="text-[10px] font-bold text-[#6B7280] tracking-widest mb-1">
+      <div className="flex-1 gap-1 flex p-3 flex-col">
+        <p className="text-[10px] font-bold text-[#6B7280] tracking-widest">
           {product.category}
         </p>
-        <h4 className="text-[#111827] font-bold text-[15px] mb-2 leading-snug line-clamp-2">
+        <h4 className="text-[#111827] font-bold text-[15px] leading-snug line-clamp-2">
           {product.name}
         </h4>
 
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between">
           <p className="text-[#111827] font-black text-[20px]">
             ${product.price.toLocaleString()}
           </p>
@@ -159,18 +161,18 @@ function ProductCard({ product }: { product: (typeof BEST_SELLERS)[0] }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1.5 mb-5">
+        <div className="flex flex-nowrap py-1 overflow-x-scroll scrollbar-none gap-1.5">
           {product.specs.map((s) => (
             <span
               key={s}
-              className="text-[10px] px-2 py-1 rounded bg-white border border-[#E5E7EB] text-[#4B5563] font-medium"
+              className="text-[10px] text-nowrap px-1 rounded-sm bg-gray-100 border border-[#E5E7EB] text-[#4B5563] font-medium"
             >
               {s}
             </span>
           ))}
         </div>
 
-        <button className="mt-auto w-full bg-[#0A0C14] hover:bg-[#1E2235] text-white font-semibold text-[13px] py-3 rounded-lg transition-colors">
+        <button className="mt-1 w-full bg-[#0A0C14] hover:bg-[#1E2235] text-white font-semibold text-[13px] py-1.5 rounded-lg transition-colors">
           Add to Cart
         </button>
       </div>
@@ -183,15 +185,22 @@ export default function Home() {
   return (
     <div className="bg-[#F9FAFB] min-h-screen">
       {/* ── 1. HERO ───────────────────────────────────────────────────── */}
-      <section className="relative w-full min-h-[520px] flex items-center overflow-hidden bg-[#0A0C14]" style={{ backgroundImage: "url('/davide-boscolo-gz9njd0zYbQ-unsplash.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}>
+      <section
+        className="relative w-full min-h-[520px] flex items-center overflow-hidden bg-[#0A0C14]"
+        style={{
+          backgroundImage: "url('/davide-boscolo-gz9njd0zYbQ-unsplash.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         {/* BG gradient layer with dark contrast */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A0C14] via-[#0A0C14]/85 to-[#0A0C14]/40 z-10" />
+        <div className="absolute inset-0 bg-[#0A0F24] opacity-85 z-10" />
         {/* BG decorative circles */}
-        <div className="absolute right-10 top-1/2 -translate-y-1/2 w-[480px] h-[480px] rounded-full border border-[#00D4E8]/10 opacity-60" />
+        {/* <div className="absolute right-10 top-1/2 -translate-y-1/2 w-[480px] h-[480px] rounded-full border border-[#00D4E8]/10 opacity-60" />
         <div className="absolute right-20 top-1/2 -translate-y-1/2 w-[360px] h-[360px] rounded-full border border-[#00D4E8]/15 opacity-60" />
         <div className="absolute right-28 top-1/2 -translate-y-1/2 w-[240px] h-[240px] rounded-full bg-[#00D4E8]/5 flex items-center justify-center">
           <div className="w-32 h-32 rounded-full bg-[#00D4E8]/10" />
-        </div>
+        </div> */}
         {/* Subtle grid overlay */}
         <div
           className="absolute inset-0 opacity-5"
@@ -212,9 +221,9 @@ export default function Home() {
               <br />
               <span className="text-[#00D4E8]">Zero Distortions.</span>
             </h1>
-            <p className="text-[#8892A4] text-[15px] mb-8 leading-relaxed max-w-sm">
-              Presenting the GadgetHub SoundLabs Pro Series. Engineered with 50mm
-              electrostatic transducers and real-time environment mapping.
+            <p className="text-[#8892A4] text-[15px] mb-8 leading-relaxed max-w-lg">
+              Presenting the GadgetHub SoundLabs Pro Series. Engineered with
+              50mm electrostatic transducers and real-time environment mapping.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -243,7 +252,7 @@ export default function Home() {
                 <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-[#00D4E8]">
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className="text-[13px] text-[#8892A4] font-medium">
+                <span className="text-[13px] text-white font-medium">
                   {label}
                 </span>
               </div>
@@ -299,18 +308,18 @@ export default function Home() {
               key={lab.title}
               href={lab.href}
               className="group relative rounded-xl overflow-hidden border border-[#E5E7EB] hover:border-[#00D4E8] transition-colors aspect-[1.4] flex flex-col justify-end p-6 bg-white"
+              style={{
+                backgroundImage: `url('${lab.image}')`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
             >
-              {/* Gradient bg overlay mimicking images */}
+              {/* Dark gradient overlay for contrast */}
               <div
-                className={`absolute inset-0 bg-gradient-to-br ${lab.bg} opacity-95`}
-              />
-              {/* Decorative grid dots */}
-              <div
-                className="absolute inset-0 opacity-10"
+                className="absolute inset-0 opacity-65"
                 style={{
-                  backgroundImage:
-                    "radial-gradient(circle, #ffffff 1px, transparent 1px)",
-                  backgroundSize: "24px 24px",
+                  background:
+                    "linear-gradient(135deg, rgba(10, 15, 36, 0.9), rgba(10, 15, 36, 0.7))",
                 }}
               />
               <div className="relative z-10">

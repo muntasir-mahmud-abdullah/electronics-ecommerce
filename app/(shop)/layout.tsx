@@ -14,7 +14,7 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
       {/* ── FOOTER ──────────────────────────────────────────────────── */}
       <footer className="bg-[#060810] border-t border-[#1E2235] mt-auto">
         <div className="max-w-[1320px] mx-auto px-6 py-14">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+          <div className="grid grid-cols-1 justify-items-center md:grid-cols-4 gap-10">
             {/* Brand + Newsletter */}
             <div className="md:col-span-1">
               <Link href="/" className="flex items-center gap-1.5 mb-4 group">
