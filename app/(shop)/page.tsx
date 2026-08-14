@@ -1,7 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Truck, Shield, RotateCcw, Lock, Headphones, Monitor, Smartphone, Gamepad2, Home as HomeIcon, Watch, ChevronRight, Star, ChevronLeft } from "lucide-react";
+import {
+  ArrowRight,
+  Truck,
+  Shield,
+  RotateCcw,
+  Lock,
+  Headphones,
+  Monitor,
+  Smartphone,
+  Gamepad2,
+  Home as HomeIcon,
+  Watch,
+  ChevronRight,
+  Star,
+  ChevronLeft,
+} from "lucide-react";
 
 // --- Data ---
 const TRUST_ITEMS = [
@@ -23,7 +38,8 @@ const CATEGORIES = [
 const LAB_SETUPS = [
   {
     title: "Creative Workspace",
-    description: "Designed for intensive render operations & 2070 GB video edit.",
+    description:
+      "Designed for intensive render operations & 2070 GB video edit.",
     href: "/products",
     bg: "from-slate-800 to-[#111827]",
     accent: "#00D4E8",
@@ -109,7 +125,11 @@ function ProductCard({ product }: { product: (typeof BEST_SELLERS)[0] }) {
         {product.badge && (
           <span
             className="absolute top-2 left-2 text-[10px] font-bold px-2 py-1 rounded"
-            style={{ color: product.badgeColor!, border: `1px solid ${product.badgeColor}`, background: "white" }}
+            style={{
+              color: product.badgeColor!,
+              border: `1px solid ${product.badgeColor}`,
+              background: "white",
+            }}
           >
             {product.badge}
           </span>
@@ -120,25 +140,36 @@ function ProductCard({ product }: { product: (typeof BEST_SELLERS)[0] }) {
       </div>
 
       <div className="flex-1 flex flex-col">
-        <p className="text-[10px] font-bold text-[#6B7280] tracking-widest mb-1">{product.category}</p>
-        <h4 className="text-[#111827] font-bold text-[15px] mb-2 leading-snug line-clamp-2">{product.name}</h4>
-        
+        <p className="text-[10px] font-bold text-[#6B7280] tracking-widest mb-1">
+          {product.category}
+        </p>
+        <h4 className="text-[#111827] font-bold text-[15px] mb-2 leading-snug line-clamp-2">
+          {product.name}
+        </h4>
+
         <div className="flex items-center justify-between mb-4">
-          <p className="text-[#111827] font-black text-[20px]">${product.price.toLocaleString()}</p>
+          <p className="text-[#111827] font-black text-[20px]">
+            ${product.price.toLocaleString()}
+          </p>
           <div className="flex items-center gap-1.5">
             <StarRating rating={product.rating} />
-            <span className="text-[#6B7280] text-[11px] font-medium">({product.reviews.toLocaleString()})</span>
+            <span className="text-[#6B7280] text-[11px] font-medium">
+              ({product.reviews.toLocaleString()})
+            </span>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-1.5 mb-5">
           {product.specs.map((s) => (
-            <span key={s} className="text-[10px] px-2 py-1 rounded bg-white border border-[#E5E7EB] text-[#4B5563] font-medium">
+            <span
+              key={s}
+              className="text-[10px] px-2 py-1 rounded bg-white border border-[#E5E7EB] text-[#4B5563] font-medium"
+            >
               {s}
             </span>
           ))}
         </div>
-        
+
         <button className="mt-auto w-full bg-[#0A0C14] hover:bg-[#1E2235] text-white font-semibold text-[13px] py-3 rounded-lg transition-colors">
           Add to Cart
         </button>
@@ -152,9 +183,9 @@ export default function Home() {
   return (
     <div className="bg-[#F9FAFB] min-h-screen">
       {/* ── 1. HERO ───────────────────────────────────────────────────── */}
-      <section className="relative w-full min-h-[520px] flex items-center overflow-hidden bg-[#0A0C14]">
-        {/* BG gradient layer */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A0C14] via-[#0A0C14]/80 to-transparent z-10" />
+      <section className="relative w-full min-h-[520px] flex items-center overflow-hidden bg-[#0A0C14]" style={{ backgroundImage: "url('/davide-boscolo-gz9njd0zYbQ-unsplash.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}>
+        {/* BG gradient layer with dark contrast */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A0C14] via-[#0A0C14]/85 to-[#0A0C14]/40 z-10" />
         {/* BG decorative circles */}
         <div className="absolute right-10 top-1/2 -translate-y-1/2 w-[480px] h-[480px] rounded-full border border-[#00D4E8]/10 opacity-60" />
         <div className="absolute right-20 top-1/2 -translate-y-1/2 w-[360px] h-[360px] rounded-full border border-[#00D4E8]/15 opacity-60" />
@@ -162,21 +193,28 @@ export default function Home() {
           <div className="w-32 h-32 rounded-full bg-[#00D4E8]/10" />
         </div>
         {/* Subtle grid overlay */}
-        <div className="absolute inset-0 opacity-5"
-          style={{ backgroundImage: "linear-gradient(#00D4E8 1px, transparent 1px), linear-gradient(90deg, #00D4E8 1px, transparent 1px)", backgroundSize: "48px 48px" }}
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage:
+              "linear-gradient(#00D4E8 1px, transparent 1px), linear-gradient(90deg, #00D4E8 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
         />
 
-        <div className="relative z-20 max-w-[1320px] mx-auto px-6 py-20">
+        <div className="relative z-20 w-full max-w-[1320px] mx-auto px-6 py-20">
           <div className="max-w-xl">
             <div className="inline-flex items-center gap-2 border border-[#00D4E8]/40 text-[#00D4E8] text-[10px] font-bold tracking-widest px-3 py-1 rounded mb-6 uppercase">
               New Arrival Edition
             </div>
             <h1 className="text-5xl lg:text-6xl font-black leading-[1.08] mb-5 text-white tracking-tight">
-              Architectural Sound.<br />
+              Architectural Sound.
+              <br />
               <span className="text-[#00D4E8]">Zero Distortions.</span>
             </h1>
             <p className="text-[#8892A4] text-[15px] mb-8 leading-relaxed max-w-sm">
-              Presenting the Circu SoundLabs Pro Series. Engineered with 50mm electrostatic transducers and real-time environment mapping.
+              Presenting the GadgetHub SoundLabs Pro Series. Engineered with 50mm
+              electrostatic transducers and real-time environment mapping.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -205,7 +243,9 @@ export default function Home() {
                 <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-[#00D4E8]">
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className="text-[13px] text-[#8892A4] font-medium">{label}</span>
+                <span className="text-[13px] text-[#8892A4] font-medium">
+                  {label}
+                </span>
               </div>
             ))}
           </div>
@@ -214,8 +254,12 @@ export default function Home() {
 
       {/* ── 3. FEATURED CATEGORIES ───────────────────────────────────── */}
       <section className="max-w-[1320px] mx-auto px-6 pt-16 pb-12">
-        <h2 className="text-[22px] font-black text-[#111827] tracking-tight mb-1">Featured Hardware Categories</h2>
-        <p className="text-[#6B7280] text-[13px] mb-8">Engineered devices categorized by architectural standards.</p>
+        <h2 className="text-[22px] font-black text-[#111827] tracking-tight mb-1">
+          Featured Hardware Categories
+        </h2>
+        <p className="text-[#6B7280] text-[13px] mb-8">
+          Engineered devices categorized by architectural standards.
+        </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {CATEGORIES.map(({ icon: Icon, label, count, slug }) => (
@@ -228,8 +272,12 @@ export default function Home() {
                 <Icon className="w-6 h-6" />
               </div>
               <div className="text-center">
-                <p className="text-[#111827] text-[13px] font-bold leading-tight">{label}</p>
-                <p className="text-[#9CA3AF] text-[11px] mt-0.5">{count} Models</p>
+                <p className="text-[#111827] text-[13px] font-bold leading-tight">
+                  {label}
+                </p>
+                <p className="text-[#9CA3AF] text-[11px] mt-0.5">
+                  {count} Models
+                </p>
               </div>
             </Link>
           ))}
@@ -238,8 +286,12 @@ export default function Home() {
 
       {/* ── 4. SHOP BY LAB & SETUP ───────────────────────────────────── */}
       <section className="max-w-[1320px] mx-auto px-6 py-12">
-        <h2 className="text-[22px] font-black text-[#111827] tracking-tight mb-1">Shop by Lab & Setup</h2>
-        <p className="text-[#6B7280] text-[13px] mb-8">Hardware packages pre-configured for ultimate work workflows.</p>
+        <h2 className="text-[22px] font-black text-[#111827] tracking-tight mb-1">
+          Shop by Lab & Setup
+        </h2>
+        <p className="text-[#6B7280] text-[13px] mb-8">
+          Hardware packages pre-configured for ultimate work workflows.
+        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {LAB_SETUPS.map((lab) => (
@@ -249,15 +301,25 @@ export default function Home() {
               className="group relative rounded-xl overflow-hidden border border-[#E5E7EB] hover:border-[#00D4E8] transition-colors aspect-[1.4] flex flex-col justify-end p-6 bg-white"
             >
               {/* Gradient bg overlay mimicking images */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${lab.bg} opacity-95`} />
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${lab.bg} opacity-95`}
+              />
               {/* Decorative grid dots */}
               <div
                 className="absolute inset-0 opacity-10"
-                style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "24px 24px" }}
+                style={{
+                  backgroundImage:
+                    "radial-gradient(circle, #ffffff 1px, transparent 1px)",
+                  backgroundSize: "24px 24px",
+                }}
               />
               <div className="relative z-10">
-                <h3 className="text-white font-bold text-[17px] mb-1.5">{lab.title}</h3>
-                <p className="text-[#9CA3AF] text-[12px] mb-4 leading-relaxed max-w-[200px]">{lab.description}</p>
+                <h3 className="text-white font-bold text-[17px] mb-1.5">
+                  {lab.title}
+                </h3>
+                <p className="text-[#9CA3AF] text-[12px] mb-4 leading-relaxed max-w-[200px]">
+                  {lab.description}
+                </p>
                 <span
                   className="inline-flex items-center gap-1 text-[11px] font-bold tracking-wide transition-all uppercase"
                   style={{ color: lab.accent }}
@@ -274,7 +336,9 @@ export default function Home() {
       {/* ── 5. BEST SELLERS ──────────────────────────────────────────── */}
       <section className="max-w-[1320px] mx-auto px-6 py-12 pb-20">
         <div className="flex items-end justify-between mb-1">
-          <h2 className="text-[22px] font-black text-[#111827] tracking-tight">Best Sellers in Performance</h2>
+          <h2 className="text-[22px] font-black text-[#111827] tracking-tight">
+            Best Sellers in Performance
+          </h2>
           <div className="flex gap-2">
             <button className="w-8 h-8 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#4B5563] hover:text-[#111827] hover:border-[#D1D5DB] transition-all">
               <ChevronLeft className="w-4 h-4" />
@@ -284,7 +348,9 @@ export default function Home() {
             </button>
           </div>
         </div>
-        <p className="text-[#6B7280] text-[13px] mb-8">Top-rated tech built for reliability & speed.</p>
+        <p className="text-[#6B7280] text-[13px] mb-8">
+          Top-rated tech built for reliability & speed.
+        </p>
 
         <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-[#E5E7EB]">
           {BEST_SELLERS.map((product) => (
