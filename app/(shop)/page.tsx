@@ -17,6 +17,9 @@ import {
 import { prisma } from "@/lib/prisma";
 import { ProductCard, PopulatedProduct } from "@/components/product-card";
 
+// Prevent prerendering during build — this page needs database access at runtime
+export const dynamic = "force-dynamic";
+
 // --- Data ---
 const TRUST_ITEMS = [
   { icon: Truck, label: "Global Free Shipping" },
@@ -28,7 +31,8 @@ const TRUST_ITEMS = [
 const LAB_SETUPS = [
   {
     title: "Creative Workspace",
-    description: "Designed for intensive render operations & 2070 GB video edit.",
+    description:
+      "Designed for intensive render operations & 2070 GB video edit.",
     href: "/products?category=laptops",
     bg: "from-slate-800 to-[#111827]",
     accent: "#00D4E8",
@@ -55,11 +59,16 @@ const LAB_SETUPS = [
 // Fallback Icons based on category slugs
 const getCategoryIcon = (slug: string) => {
   switch (slug) {
-    case "audio": return Headphones;
-    case "laptops": return Monitor;
-    case "smartphones": return Smartphone;
-    case "monitors": return Monitor;
-    default: return Gamepad2;
+    case "audio":
+      return Headphones;
+    case "laptops":
+      return Monitor;
+    case "smartphones":
+      return Smartphone;
+    case "monitors":
+      return Monitor;
+    default:
+      return Gamepad2;
   }
 };
 
@@ -68,7 +77,7 @@ export default async function Home() {
   const categoriesDb = await prisma.category.findMany({
     where: { isActive: true },
     include: { _count: { select: { products: true } } },
-    orderBy: { sortOrder: "asc" }
+    orderBy: { sortOrder: "asc" },
   });
 
   const featuredProductsDb = await prisma.product.findMany({
@@ -83,15 +92,15 @@ export default async function Home() {
           attributes: {
             include: {
               attributeValue: {
-                include: { group: true }
-              }
-            }
-          }
+                include: { group: true },
+              },
+            },
+          },
         },
-        orderBy: { sortOrder: "asc" }
-      }
+        orderBy: { sortOrder: "asc" },
+      },
     },
-    take: 8
+    take: 8,
   });
 
   return (
@@ -195,7 +204,7 @@ export default async function Home() {
                   </p>
                 </div>
               </Link>
-            )
+            );
           })}
         </div>
       </section>
@@ -276,4 +285,3 @@ export default async function Home() {
     </div>
   );
 }
-
