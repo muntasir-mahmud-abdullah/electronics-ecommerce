@@ -18,7 +18,13 @@ export const LoginSchema = z.object({
 
 export const CategorySchema = z.object({
   name: z.string().min(1, "Name is required"),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens only"),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Slug must be lowercase letters, numbers, and hyphens only",
+    ),
   prefix: z.string().min(1).max(3, "Prefix max 3 characters"),
   description: z.string().optional(),
   image: z.string().optional(),
@@ -31,7 +37,10 @@ export const CategorySchema = z.object({
 
 export const BrandSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .regex(/^[a-z0-9-]+$/),
   logo: z.string().optional(),
   description: z.string().optional(),
   isActive: z.boolean().default(true),
@@ -57,7 +66,10 @@ export const AttributeValueSchema = z.object({
 
 export const ProductSchema = z.object({
   name: z.string().min(1, "Product name is required"),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .regex(/^[a-z0-9-]+$/),
   description: z.string().optional(),
   categoryId: z.string().min(1, "Category is required"),
   brandId: z.string().optional(),
@@ -107,8 +119,55 @@ export const CheckoutSchema = z.object({
 // ─── Order status update (admin) ──────────────────────────────────────────────
 
 export const UpdateOrderStatusSchema = z.object({
-  status: z.enum(["PENDING", "CONFIRMED", "PROCESSING", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED"]),
+  status: z.enum([
+    "PENDING",
+    "CONFIRMED",
+    "PROCESSING",
+    "PACKED",
+    "SHIPPED",
+    "DELIVERED",
+    "CANCELLED",
+    "RETURNED",
+  ]),
   note: z.string().optional(),
+});
+
+// ─── User Profile ───────────────────────────────────────────────────────────────
+
+export const UpdateProfileSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().optional(),
+});
+
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+// ─── Address ───────────────────────────────────────────────────────────────────
+
+export const AddressSchema = z.object({
+  label: z.string().optional(),
+  fullName: z.string().min(2, "Full name is required"),
+  phone: z.string().min(6, "Phone number is required"),
+  addressLine1: z.string().min(5, "Address is required"),
+  addressLine2: z.string().optional(),
+  city: z.string().min(2, "City is required"),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
+  country: z.string().default("US"),
+  isDefault: z.boolean().default(true),
+});
+
+// ─── Admin User Management ────────────────────────────────────────────────────
+
+export const UpdateUserSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().optional(),
+  role: z.enum(["SUPER_ADMIN", "MANAGER", "CUSTOMER"]),
+  isActive: z.boolean(),
 });
 
 // ─── Type exports ─────────────────────────────────────────────────────────────
@@ -121,3 +180,7 @@ export type ProductInput = z.infer<typeof ProductSchema>;
 export type ProductVariantInput = z.infer<typeof ProductVariantSchema>;
 export type AddToCartInput = z.infer<typeof AddToCartSchema>;
 export type CheckoutInput = z.infer<typeof CheckoutSchema>;
+export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
+export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
+export type AddressInput = z.infer<typeof AddressSchema>;
+export type UpdateUserInput = z.infer<typeof UpdateUserSchema>;

@@ -4,13 +4,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { Role } from "@prisma/client";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
-const JWT_REFRESH_SECRET = new TextEncoder().encode(process.env.JWT_REFRESH_SECRET!);
+const JWT_REFRESH_SECRET = new TextEncoder().encode(
+  process.env.JWT_REFRESH_SECRET!,
+);
 
 export interface JWTPayload {
-  sub: string;      // user id
+  sub: string; // user id
   email: string;
   role: Role;
   name: string;
+  phone?: string;
 }
 
 // ─── Token creation ───────────────────────────────────────────────────────────
@@ -23,7 +26,9 @@ export async function signAccessToken(payload: JWTPayload): Promise<string> {
     .sign(JWT_SECRET);
 }
 
-export async function signRefreshToken(payload: Pick<JWTPayload, "sub">): Promise<string> {
+export async function signRefreshToken(
+  payload: Pick<JWTPayload, "sub">,
+): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -33,7 +38,9 @@ export async function signRefreshToken(payload: Pick<JWTPayload, "sub">): Promis
 
 // ─── Token verification ───────────────────────────────────────────────────────
 
-export async function verifyAccessToken(token: string): Promise<JWTPayload | null> {
+export async function verifyAccessToken(
+  token: string,
+): Promise<JWTPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return payload as unknown as JWTPayload;
@@ -42,7 +49,9 @@ export async function verifyAccessToken(token: string): Promise<JWTPayload | nul
   }
 }
 
-export async function verifyRefreshToken(token: string): Promise<{ sub: string } | null> {
+export async function verifyRefreshToken(
+  token: string,
+): Promise<{ sub: string } | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_REFRESH_SECRET);
     return payload as unknown as { sub: string };
@@ -57,13 +66,18 @@ export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+export async function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
 
 // ─── Auth helper for route handlers ──────────────────────────────────────────
 
-export async function getAuthUser(request: NextRequest): Promise<JWTPayload | null> {
+export async function getAuthUser(
+  request: NextRequest,
+): Promise<JWTPayload | null> {
   const authHeader = request.headers.get("authorization");
   const token = authHeader?.replace("Bearer ", "");
   if (!token) return null;
@@ -73,7 +87,7 @@ export async function getAuthUser(request: NextRequest): Promise<JWTPayload | nu
 export function requireRole(allowedRoles: Role[]) {
   return async function withRole(
     request: NextRequest,
-    handler: (req: NextRequest, user: JWTPayload) => Promise<NextResponse>
+    handler: (req: NextRequest, user: JWTPayload) => Promise<NextResponse>,
   ): Promise<NextResponse> {
     const user = await getAuthUser(request);
     if (!user) {

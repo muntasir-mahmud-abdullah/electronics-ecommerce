@@ -39,8 +39,8 @@ function StarRating({ rating }: { rating: number }) {
             i <= Math.floor(rating)
               ? "fill-[#F59E0B] text-[#F59E0B]"
               : i - 0.5 <= rating
-              ? "fill-[#F59E0B]/50 text-[#F59E0B]/50"
-              : "fill-[#E5E7EB] text-[#E5E7EB]"
+                ? "fill-[#F59E0B]/50 text-[#F59E0B]/50"
+                : "fill-[#E5E7EB] text-[#E5E7EB]"
           }`}
         />
       ))}
@@ -49,7 +49,9 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export default function ComparePage() {
-  const compareIds = useSelector((state: RootState) => state.compare.productIds);
+  const compareIds = useSelector(
+    (state: RootState) => state.compare.productIds,
+  );
   const dispatch = useDispatch<AppDispatch>();
 
   const [products, setProducts] = useState<any[]>([]);
@@ -66,7 +68,9 @@ export default function ComparePage() {
       }
       setLoading(true);
       try {
-        const res = await fetch(`/api/products/compare?ids=${compareIds.join(",")}`);
+        const res = await fetch(
+          `/api/products/compare?ids=${compareIds.join(",")}`,
+        );
         const data = await res.json();
         setProducts(data.products || []);
         setAllAttributeGroups(data.allAttributeGroups || []);
@@ -85,7 +89,9 @@ export default function ComparePage() {
       <div className="min-h-[70vh] bg-[#F9FAFB] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-2 border-[#00D4E8] border-t-transparent animate-spin" />
-          <span className="text-[#6B7280] text-sm font-medium">Loading comparison...</span>
+          <span className="text-[#6B7280] text-sm font-medium">
+            Loading comparison...
+          </span>
         </div>
       </div>
     );
@@ -98,9 +104,13 @@ export default function ComparePage() {
           <div className="w-14 h-14 rounded-full bg-[#F0FFFE] border border-[#00D4E8]/30 flex items-center justify-center mb-5">
             <Zap className="w-7 h-7 text-[#00D4E8]" />
           </div>
-          <h2 className="text-[22px] font-black text-[#111827] tracking-tight mb-3">No Products to Compare</h2>
+          <h2 className="text-[22px] font-black text-[#111827] tracking-tight mb-3">
+            No Products to Compare
+          </h2>
           <p className="text-[#6B7280] text-sm mb-8 leading-relaxed">
-            You haven&apos;t added any products to your comparison lab yet. Browse the catalog and click the compare icon to add up to 3 products.
+            You haven&apos;t added any products to your comparison lab yet.
+            Browse the catalog and click the compare icon to add up to 3
+            products.
           </p>
           <Link
             href="/products"
@@ -118,7 +128,10 @@ export default function ComparePage() {
   const specRows: { group: string; rows: string[] }[] = [];
 
   if (allAttributeGroups.length > 0) {
-    specRows.push({ group: "Technical Specifications", rows: allAttributeGroups });
+    specRows.push({
+      group: "Technical Specifications",
+      rows: allAttributeGroups,
+    });
   } else {
     specRows.push(...STATIC_SPEC_GROUPS);
   }
@@ -136,7 +149,9 @@ export default function ComparePage() {
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to Listing
           </Link>
-          <h1 className="text-[28px] font-black text-[#111827] tracking-tight">Side-by-Side Spec Comparison</h1>
+          <h1 className="text-[28px] font-black text-[#111827] tracking-tight">
+            Side-by-Side Spec Comparison
+          </h1>
         </div>
 
         {/* Main comparison card */}
@@ -154,14 +169,23 @@ export default function ComparePage() {
 
                 {/* Product columns */}
                 {products.map((p) => (
-                  <th key={p.id} className="p-5 align-top border-l border-[#E5E7EB] w-[220px]">
+                  <th
+                    key={p.id}
+                    className="p-5 align-top border-l border-[#E5E7EB] w-[220px]"
+                  >
                     <div className="flex items-start gap-4">
                       {/* Product image */}
                       <div className="w-[90px] h-[90px] flex-shrink-0 bg-[#F9FAFB] rounded-xl flex items-center justify-center overflow-hidden border border-[#E5E7EB]">
                         {p.image ? (
-                          <img src={p.image} alt={p.name} className="w-full h-full object-contain mix-blend-multiply p-2" />
+                          <img
+                            src={p.image}
+                            alt={p.name}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
-                          <div className="text-[#9CA3AF] text-xs text-center px-2">No Image</div>
+                          <div className="text-[#9CA3AF] text-xs text-center px-2">
+                            No Image
+                          </div>
                         )}
                       </div>
                       {/* Info */}
@@ -181,10 +205,14 @@ export default function ComparePage() {
                             <X className="w-3 h-3" />
                           </button>
                         </div>
-                        <p className="text-[18px] font-black text-[#111827] mt-1">${Number(p.price || 0).toLocaleString()}</p>
+                        <p className="text-[18px] font-black text-[#111827] mt-1">
+                          ${Number(p.price || 0).toLocaleString()}
+                        </p>
                         <div className="flex items-center gap-1.5 mt-1">
                           <StarRating rating={4.5} />
-                          <span className="text-[10px] text-[#6B7280]">(142)</span>
+                          <span className="text-[10px] text-[#6B7280]">
+                            (142)
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -193,13 +221,20 @@ export default function ComparePage() {
 
                 {/* Empty slot columns */}
                 {[...Array(Math.max(0, 3 - products.length))].map((_, i) => (
-                  <th key={`empty-head-${i}`} className="p-5 border-l border-[#E5E7EB] align-middle">
+                  <th
+                    key={`empty-head-${i}`}
+                    className="p-5 border-l border-[#E5E7EB] align-middle"
+                  >
                     <Link
                       href="/products"
                       className="flex flex-col items-center justify-center gap-2 h-[90px] border-2 border-dashed border-[#E5E7EB] rounded-xl text-[#9CA3AF] hover:border-[#00D4E8] hover:text-[#00D4E8] transition-all"
                     >
-                      <span className="text-2xl font-light leading-none">+</span>
-                      <span className="text-[11px] font-medium">Add Product</span>
+                      <span className="text-2xl font-light leading-none">
+                        +
+                      </span>
+                      <span className="text-[11px] font-medium">
+                        Add Product
+                      </span>
                     </Link>
                   </th>
                 ))}
@@ -211,7 +246,10 @@ export default function ComparePage() {
               {specRows.map(({ group, rows }) => (
                 <>
                   {/* Group header */}
-                  <tr key={`group-${group}`} className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                  <tr
+                    key={`group-${group}`}
+                    className="border-b border-[#E5E7EB] bg-[#F9FAFB]"
+                  >
                     <td
                       colSpan={4}
                       className="px-6 py-3 text-[12px] font-black text-[#111827] uppercase tracking-wider"
@@ -223,14 +261,26 @@ export default function ComparePage() {
                   {/* Spec value rows */}
                   {rows.map((rowLabel, rowIdx) => {
                     // Check if all values differ — to highlight
-                    const values = products.map((p) => p.specs?.[rowLabel] || "—");
-                    const allUnique = new Set(values.filter((v) => v !== "—")).size === values.filter((v) => v !== "—").length;
-                    const shouldHighlight = allUnique && values.every((v) => v !== "—") && isHighlightValue(values[0] || "");
+                    const values = products.map(
+                      (p) => p.specs?.[rowLabel] || "—",
+                    );
+                    const allUnique =
+                      new Set(values.filter((v) => v !== "—")).size ===
+                      values.filter((v) => v !== "—").length;
+                    const shouldHighlight =
+                      allUnique &&
+                      values.every((v) => v !== "—") &&
+                      isHighlightValue(values[0] || "");
 
                     return (
-                      <tr key={rowLabel} className={`border-b border-[#E5E7EB] ${rowIdx % 2 === 0 ? "bg-white" : "bg-[#FAFAFA]"}`}>
+                      <tr
+                        key={rowLabel}
+                        className={`border-b border-[#E5E7EB] ${rowIdx % 2 === 0 ? "bg-white" : "bg-[#FAFAFA]"}`}
+                      >
                         {/* Label */}
-                        <td className="px-6 py-3 text-[12px] text-[#6B7280]">{rowLabel}</td>
+                        <td className="px-6 py-3 text-[12px] text-[#6B7280]">
+                          {rowLabel}
+                        </td>
 
                         {/* Values */}
                         {products.map((p) => {
@@ -240,7 +290,11 @@ export default function ComparePage() {
                             <td
                               key={`${p.id}-${rowLabel}`}
                               className={`px-5 py-3 border-l border-[#E5E7EB] text-[13px] font-semibold ${
-                                highlight ? "text-[#00D4E8] bg-[#F0FFFE]" : val ? "text-[#111827]" : "text-[#9CA3AF]"
+                                highlight
+                                  ? "text-[#00D4E8] bg-[#F0FFFE]"
+                                  : val
+                                    ? "text-[#111827]"
+                                    : "text-[#9CA3AF]"
                               }`}
                             >
                               {val || "—"}
@@ -249,9 +303,14 @@ export default function ComparePage() {
                         })}
 
                         {/* Empty slots */}
-                        {[...Array(Math.max(0, 3 - products.length))].map((_, i) => (
-                          <td key={`empty-val-${rowLabel}-${i}`} className="border-l border-[#E5E7EB]" />
-                        ))}
+                        {[...Array(Math.max(0, 3 - products.length))].map(
+                          (_, i) => (
+                            <td
+                              key={`empty-val-${rowLabel}-${i}`}
+                              className="border-l border-[#E5E7EB]"
+                            />
+                          ),
+                        )}
                       </tr>
                     );
                   })}
@@ -262,7 +321,10 @@ export default function ComparePage() {
               <tr className="border-t border-[#E5E7EB]">
                 <td className="p-5" />
                 {products.map((p) => (
-                  <td key={`cart-${p.id}`} className="p-5 border-l border-[#E5E7EB]">
+                  <td
+                    key={`cart-${p.id}`}
+                    className="p-5 border-l border-[#E5E7EB]"
+                  >
                     <Link
                       href={`/products/${p.slug}`}
                       className="block w-full bg-[#0A0C14] hover:bg-[#1E2235] text-white text-center font-semibold text-[13px] py-3 rounded-lg transition-colors"
@@ -272,7 +334,10 @@ export default function ComparePage() {
                   </td>
                 ))}
                 {[...Array(Math.max(0, 3 - products.length))].map((_, i) => (
-                  <td key={`empty-cart-${i}`} className="p-5 border-l border-[#E5E7EB]">
+                  <td
+                    key={`empty-cart-${i}`}
+                    className="p-5 border-l border-[#E5E7EB]"
+                  >
                     <div className="w-full h-[46px] border-2 border-dashed border-[#E5E7EB] rounded-lg" />
                   </td>
                 ))}
@@ -286,7 +351,9 @@ export default function ComparePage() {
       <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#1E2235] bg-[#0A0C14]/95 backdrop-blur-xl px-6 py-4">
         <div className="max-w-[1320px] mx-auto flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4 flex-wrap">
-            <span className="text-[12px] font-black text-white uppercase tracking-wider">Active Specs Lab</span>
+            <span className="text-[12px] font-black text-white uppercase tracking-wider">
+              Active Specs Lab
+            </span>
             <div className="flex items-center gap-2 flex-wrap">
               {products.map((p) => (
                 <div
@@ -307,7 +374,9 @@ export default function ComparePage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[12px] text-[#8892A4]">Highlights active differences</span>
+            <span className="text-[12px] text-[#8892A4]">
+              Highlights active differences
+            </span>
             <button className="bg-[#00D4E8] hover:bg-[#00BDD0] text-[#0A0C14] font-bold text-[12px] px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap">
               Run Hardware Diagnostics
             </button>

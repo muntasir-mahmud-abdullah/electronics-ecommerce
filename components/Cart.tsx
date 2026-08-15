@@ -150,12 +150,12 @@ export function Cart({ isOpen, onClose }: CartProps) {
                     className={`flex gap-4 ${isUpdating ? "opacity-50 pointer-events-none" : ""}`}
                   >
                     {/* Image */}
-                    <div className="w-20 h-20 flex-shrink-0 bg-[#111320] rounded-lg border border-[#1E2235] flex items-center justify-center overflow-hidden p-2">
+                    <div className="w-20 h-20 flex-shrink-0 bg-[#111320] rounded-lg border border-[#1E2235] flex items-center justify-center overflow-hidden">
                       {product.media?.[0]?.url ? (
                         <img
                           src={product.media[0].url}
                           alt={product.name}
-                          className="w-full h-full object-contain"
+                          className="w-full h-full object-cover"
                         />
                       ) : (
                         <span className="text-[10px] text-[#8892A4]">

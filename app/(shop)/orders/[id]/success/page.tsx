@@ -109,12 +109,12 @@ export default async function OrderSuccessPage({
           <div className="space-y-4 mb-6">
             {order.items.map((item) => (
               <div key={item.id} className="flex gap-4">
-                <div className="w-[60px] h-[60px] flex-shrink-0 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] flex items-center justify-center p-1.5 overflow-hidden">
+                <div className="w-[60px] h-[60px] flex-shrink-0 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] flex items-center justify-center overflow-hidden">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
                       alt=""
-                      className="w-full h-full object-contain mix-blend-multiply"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <span className="text-[9px] text-[#9CA3AF]">No Img</span>

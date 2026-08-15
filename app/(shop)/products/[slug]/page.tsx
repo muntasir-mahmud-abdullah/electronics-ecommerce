@@ -9,11 +9,13 @@ import {
   ChevronRight,
   Minus,
   Plus,
+  Scale,
 } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
 import { setCart } from "@/store/slices/cart";
 import { showToast, openCart } from "@/store/slices/ui";
+import { addToCompare, removeFromCompare } from "@/store/slices/compare";
 import Link from "next/link";
 
 // --- Static presentation data ---
@@ -172,6 +174,9 @@ export default function ProductDetailPage() {
   const [activeThumb, setActiveThumb] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const dispatch = useDispatch<AppDispatch>();
+  const compareIds = useSelector(
+    (state: RootState) => state.compare.productIds,
+  );
 
   useEffect(() => {
     async function fetchProduct() {
@@ -258,6 +263,38 @@ export default function ProductDetailPage() {
     }
   };
 
+  const handleCompare = () => {
+    if (!product) return;
+    const isInCompare = compareIds.includes(product.id);
+
+    if (isInCompare) {
+      dispatch(removeFromCompare(product.id));
+      dispatch(
+        showToast({
+          message: "Removed from comparison",
+          type: "success",
+        }),
+      );
+    } else {
+      if (compareIds.length >= 3) {
+        dispatch(
+          showToast({
+            message: "Maximum 3 products can be compared",
+            type: "error",
+          }),
+        );
+        return;
+      }
+      dispatch(addToCompare(product.id));
+      dispatch(
+        showToast({
+          message: "Added to comparison",
+          type: "success",
+        }),
+      );
+    }
+  };
+
   if (loading)
     return (
       <div className="min-h-[70vh] bg-[#F9FAFB] flex items-center justify-center">
@@ -324,12 +361,12 @@ export default function ProductDetailPage() {
           {/* LEFT: Images */}
           <div>
             {/* Main image */}
-            <div className="bg-white border border-[#E5E7EB] rounded-2xl aspect-square flex items-center justify-center p-8 mb-4 overflow-hidden">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl aspect-square flex items-center justify-center mb-4 overflow-hidden">
               {allMedia[activeThumb]?.url ? (
                 <img
                   src={allMedia[activeThumb].url}
                   alt={product.name}
-                  className="w-full h-full object-contain mix-blend-multiply"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="text-[#9CA3AF] text-sm">No Image Available</div>
@@ -351,7 +388,7 @@ export default function ProductDetailPage() {
                     <img
                       src={media.url}
                       alt=""
-                      className="w-full h-full object-contain mix-blend-multiply"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full bg-[#F3F4F6] rounded-md" />
@@ -514,13 +551,31 @@ export default function ProductDetailPage() {
             <button
               onClick={handleBuyNow}
               disabled={!inStock}
-              className={`w-full h-[52px] rounded-lg font-bold text-[14px] transition-colors mb-5 ${
+              className={`w-full h-[52px] rounded-lg font-bold text-[14px] transition-colors mb-3 ${
                 inStock
                   ? "bg-[#00D4E8] hover:bg-[#00BDD0] text-[#0A0C14]"
                   : "bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed"
               }`}
             >
               {inStock ? "Secure Buy Now" : "Out of Stock"}
+            </button>
+
+            {/* Add to Compare */}
+            <button
+              onClick={handleCompare}
+              disabled={!inStock}
+              className={`w-full h-[52px] rounded-lg font-bold text-[14px] transition-colors mb-5 flex items-center justify-center gap-2 ${
+                inStock
+                  ? compareIds.includes(product?.id)
+                    ? "bg-[#111827] hover:bg-[#1E2235] text-white"
+                    : "bg-white border border-[#E5E7EB] text-[#111827] hover:border-[#00D4E8] hover:text-[#00D4E8]"
+                  : "bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed"
+              }`}
+            >
+              <Scale className="w-4 h-4" />
+              {compareIds.includes(product?.id)
+                ? "Remove from Compare"
+                : "Add to Compare"}
             </button>
 
             {/* Trust badges */}

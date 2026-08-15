@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Star } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/store";
+import { Star, Scale } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
 import { setCart } from "@/store/slices/cart";
 import { showToast, openCart } from "@/store/slices/ui";
+import { addToCompare, removeFromCompare } from "@/store/slices/compare";
 import {
   Product,
   Brand,
@@ -44,6 +45,9 @@ export function StarRating({ rating }: { rating: number }) {
 
 export function ProductCard({ product }: { product: PopulatedProduct }) {
   const dispatch = useDispatch<AppDispatch>();
+  const compareIds = useSelector(
+    (state: RootState) => state.compare.productIds,
+  );
   const primaryMedia =
     product.media.find((m) => m.isPrimary) || product.media[0];
   // Calculate price based on cheapest variant
@@ -65,6 +69,41 @@ export function ProductCard({ product }: { product: PopulatedProduct }) {
     .reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const rating = 3.5 + (hash % 15) / 10; // 3.5 to 5.0
   const reviews = 10 + (hash % 150); // 10 to 160
+
+  // Check if product is in compare
+  const isInCompare = compareIds.includes(product.id);
+
+  const handleCompare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    if (isInCompare) {
+      dispatch(removeFromCompare(product.id));
+      dispatch(
+        showToast({
+          message: "Removed from comparison",
+          type: "success",
+        }),
+      );
+    } else {
+      if (compareIds.length >= 3) {
+        dispatch(
+          showToast({
+            message: "Maximum 3 products can be compared",
+            type: "error",
+          }),
+        );
+        return;
+      }
+      dispatch(addToCompare(product.id));
+      dispatch(
+        showToast({
+          message: "Added to comparison",
+          type: "success",
+        }),
+      );
+    }
+  };
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent Link navigation
@@ -121,12 +160,23 @@ export function ProductCard({ product }: { product: PopulatedProduct }) {
             FEATURED
           </span>
         )}
-        <div className="w-full h-full bg-[#F4F5F7] flex items-center justify-center mix-blend-multiply transition-transform duration-500 group-hover:scale-105">
+        <button
+          onClick={handleCompare}
+          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all ${
+            isInCompare
+              ? "bg-[#00D4E8] text-[#0A0C14]"
+              : "bg-white border border-[#E5E7EB] text-[#6B7280] hover:border-[#00D4E8] hover:text-[#00D4E8]"
+          }`}
+          title={isInCompare ? "Remove from compare" : "Add to compare"}
+        >
+          <Scale className="w-4 h-4" />
+        </button>
+        <div className="w-full h-full bg-[#F4F5F7] flex items-center justify-center transition-transform duration-500 group-hover:scale-105">
           {primaryMedia ? (
             <img
               src={primaryMedia.url}
               alt={product.name}
-              className="w-full h-full object-contain p-4"
+              className="w-full h-full object-cover"
             />
           ) : (
             <div className="text-[#9CA3AF] text-xs">No Image</div>

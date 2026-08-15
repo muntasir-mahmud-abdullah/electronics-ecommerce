@@ -5,7 +5,14 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store";
 import { useRouter } from "next/navigation";
 import { clearCart } from "@/store/slices/cart";
-import { ChevronLeft, ShieldCheck, CreditCard, Wallet, Banknote, Lock } from "lucide-react";
+import {
+  ChevronLeft,
+  ShieldCheck,
+  CreditCard,
+  Wallet,
+  Banknote,
+  Lock,
+} from "lucide-react";
 import Link from "next/link";
 
 export default function CheckoutPage() {
@@ -26,7 +33,9 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -48,7 +57,9 @@ export default function CheckoutPage() {
         dispatch(clearCart());
         router.push(`/orders/${data.order.id}/success`);
       } else {
-        setError(data.error || "Checkout failed. Please check your information.");
+        setError(
+          data.error || "Checkout failed. Please check your information.",
+        );
         if (data.details) {
           console.error("Validation errors:", data.details);
         }
@@ -73,8 +84,12 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center px-6">
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-12 text-center max-w-md w-full">
-          <h2 className="text-[22px] font-black text-[#111827] mb-2">Cart is Empty</h2>
-          <p className="text-[#6B7280] text-[13px] mb-8">You need items in your cart to proceed to checkout.</p>
+          <h2 className="text-[22px] font-black text-[#111827] mb-2">
+            Cart is Empty
+          </h2>
+          <p className="text-[#6B7280] text-[13px] mb-8">
+            You need items in your cart to proceed to checkout.
+          </p>
           <Link
             href="/products"
             className="inline-flex items-center gap-2 bg-[#0A0C14] hover:bg-[#1E2235] text-white font-bold px-6 py-3 rounded-lg text-[13px] transition-colors"
@@ -113,10 +128,14 @@ export default function CheckoutPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Contact Info */}
               <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 lg:p-8">
-                <h2 className="text-[16px] font-black text-[#111827] mb-5">Contact Information</h2>
+                <h2 className="text-[16px] font-black text-[#111827] mb-5">
+                  Contact Information
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">Full Name</label>
+                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">
+                      Full Name
+                    </label>
                     <input
                       required
                       name="shippingName"
@@ -127,7 +146,9 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">Email Address</label>
+                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">
+                      Email Address
+                    </label>
                     <input
                       type="email"
                       name="shippingEmail"
@@ -138,7 +159,9 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">Phone Number</label>
+                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">
+                      Phone Number
+                    </label>
                     <input
                       required
                       name="shippingPhone"
@@ -153,10 +176,14 @@ export default function CheckoutPage() {
 
               {/* Shipping Address */}
               <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 lg:p-8">
-                <h2 className="text-[16px] font-black text-[#111827] mb-5">Shipping Address</h2>
+                <h2 className="text-[16px] font-black text-[#111827] mb-5">
+                  Shipping Address
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">Street Address</label>
+                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">
+                      Street Address
+                    </label>
                     <input
                       required
                       name="shippingAddress"
@@ -167,7 +194,9 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">City</label>
+                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">
+                      City
+                    </label>
                     <input
                       required
                       name="shippingCity"
@@ -178,7 +207,9 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">Postal / Zip Code</label>
+                    <label className="block text-[12px] font-bold text-[#4B5563] mb-1.5">
+                      Postal / Zip Code
+                    </label>
                     <input
                       required
                       name="shippingZip"
@@ -193,7 +224,9 @@ export default function CheckoutPage() {
 
               {/* Payment Method */}
               <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 lg:p-8">
-                <h2 className="text-[16px] font-black text-[#111827] mb-5">Payment Method</h2>
+                <h2 className="text-[16px] font-black text-[#111827] mb-5">
+                  Payment Method
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <label
                     className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center gap-3 transition-all ${
@@ -213,7 +246,9 @@ export default function CheckoutPage() {
                     <Banknote
                       className={`w-6 h-6 ${formData.paymentMethod === "COD" ? "text-[#00D4E8]" : "text-[#9CA3AF]"}`}
                     />
-                    <span className={`text-[13px] font-bold ${formData.paymentMethod === "COD" ? "text-[#00D4E8]" : "text-[#6B7280]"}`}>
+                    <span
+                      className={`text-[13px] font-bold ${formData.paymentMethod === "COD" ? "text-[#00D4E8]" : "text-[#6B7280]"}`}
+                    >
                       Cash on Delivery
                     </span>
                   </label>
@@ -236,11 +271,13 @@ export default function CheckoutPage() {
                     <Wallet
                       className={`w-6 h-6 ${formData.paymentMethod === "BANK_TRANSFER" ? "text-[#00D4E8]" : "text-[#9CA3AF]"}`}
                     />
-                    <span className={`text-[13px] font-bold text-center ${formData.paymentMethod === "BANK_TRANSFER" ? "text-[#00D4E8]" : "text-[#6B7280]"}`}>
+                    <span
+                      className={`text-[13px] font-bold text-center ${formData.paymentMethod === "BANK_TRANSFER" ? "text-[#00D4E8]" : "text-[#6B7280]"}`}
+                    >
                       Bank Transfer
                     </span>
                   </label>
-                  
+
                   <label
                     className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center gap-3 transition-all ${
                       formData.paymentMethod === "MOCK_CARD"
@@ -259,7 +296,9 @@ export default function CheckoutPage() {
                     <CreditCard
                       className={`w-6 h-6 ${formData.paymentMethod === "MOCK_CARD" ? "text-[#00D4E8]" : "text-[#9CA3AF]"}`}
                     />
-                    <span className={`text-[13px] font-bold ${formData.paymentMethod === "MOCK_CARD" ? "text-[#00D4E8]" : "text-[#6B7280]"}`}>
+                    <span
+                      className={`text-[13px] font-bold ${formData.paymentMethod === "MOCK_CARD" ? "text-[#00D4E8]" : "text-[#6B7280]"}`}
+                    >
                       Credit Card (Mock)
                     </span>
                   </label>
@@ -289,29 +328,51 @@ export default function CheckoutPage() {
           {/* Right: Order Summary (Sticky) */}
           <div className="w-full lg:w-1/3 sticky top-[100px]">
             <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6">
-              <h2 className="text-[16px] font-black text-[#111827] mb-5">Order Summary</h2>
-              
+              <h2 className="text-[16px] font-black text-[#111827] mb-5">
+                Order Summary
+              </h2>
+
               <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto scrollbar-thin pr-2">
                 {cart.items.map((item) => {
                   const product = item.variant.product;
-                  const price = Number(item.variant.salePrice ?? item.variant.price);
-                  const variantLabel = item.variant.attributes?.map((a: any) => a.attributeValue.value).join(" / ");
+                  const price = Number(
+                    item.variant.salePrice ?? item.variant.price,
+                  );
+                  const variantLabel = item.variant.attributes
+                    ?.map((a: any) => a.attributeValue.value)
+                    .join(" / ");
 
                   return (
                     <div key={item.id} className="flex gap-3">
-                      <div className="w-[60px] h-[60px] flex-shrink-0 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] flex items-center justify-center p-1.5 overflow-hidden">
+                      <div className="w-[60px] h-[60px] flex-shrink-0 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] flex items-center justify-center overflow-hidden">
                         {product.media?.[0]?.url ? (
-                          <img src={product.media[0].url} alt="" className="w-full h-full object-contain mix-blend-multiply" />
+                          <img
+                            src={product.media[0].url}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
-                          <span className="text-[9px] text-[#9CA3AF]">No Img</span>
+                          <span className="text-[9px] text-[#9CA3AF]">
+                            No Img
+                          </span>
                         )}
                       </div>
                       <div className="flex-1 flex flex-col justify-center">
-                        <h4 className="text-[12px] font-bold text-[#111827] line-clamp-1">{product.name}</h4>
-                        {variantLabel && <p className="text-[10px] text-[#6B7280] mt-0.5">{variantLabel}</p>}
+                        <h4 className="text-[12px] font-bold text-[#111827] line-clamp-1">
+                          {product.name}
+                        </h4>
+                        {variantLabel && (
+                          <p className="text-[10px] text-[#6B7280] mt-0.5">
+                            {variantLabel}
+                          </p>
+                        )}
                         <div className="flex justify-between items-center mt-1">
-                          <span className="text-[11px] font-medium text-[#6B7280]">Qty: {item.quantity}</span>
-                          <span className="text-[13px] font-bold text-[#111827]">${(price * item.quantity).toLocaleString()}</span>
+                          <span className="text-[11px] font-medium text-[#6B7280]">
+                            Qty: {item.quantity}
+                          </span>
+                          <span className="text-[13px] font-bold text-[#111827]">
+                            ${(price * item.quantity).toLocaleString()}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -322,7 +383,9 @@ export default function CheckoutPage() {
               <div className="space-y-3 pt-5 border-t border-[#E5E7EB] mb-5">
                 <div className="flex justify-between text-[13px]">
                   <span className="text-[#6B7280]">Subtotal</span>
-                  <span className="font-semibold text-[#111827]">${cart.subtotal.toLocaleString()}</span>
+                  <span className="font-semibold text-[#111827]">
+                    ${cart.subtotal.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between text-[13px]">
                   <span className="text-[#6B7280]">Shipping</span>
@@ -337,11 +400,15 @@ export default function CheckoutPage() {
               </div>
 
               <div className="flex justify-between items-center pt-5 border-t border-[#E5E7EB]">
-                <span className="text-[15px] font-black text-[#111827]">Total</span>
-                <span className="text-[22px] font-black text-[#00D4E8]">${cart.total.toLocaleString()}</span>
+                <span className="text-[15px] font-black text-[#111827]">
+                  Total
+                </span>
+                <span className="text-[22px] font-black text-[#00D4E8]">
+                  ${cart.total.toLocaleString()}
+                </span>
               </div>
             </div>
-            
+
             <div className="mt-4 flex flex-col items-center gap-2">
               <span className="flex items-center gap-1.5 text-[11px] text-[#9CA3AF]">
                 <Lock className="w-3 h-3" />

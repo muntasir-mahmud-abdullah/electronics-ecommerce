@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get("maxPrice");
     const inStock = searchParams.get("inStock") === "true";
     const featured = searchParams.get("featured") === "true";
-    const useCases = searchParams.get("useCases")?.split(",").filter(Boolean) || [];
+    const useCases =
+      searchParams.get("useCases")?.split(",").filter(Boolean) || [];
 
     // Find categoryId from slug
     let categoryId: string | undefined;
@@ -37,15 +38,26 @@ export async function GET(request: NextRequest) {
       });
       if (cat) {
         categoryId = cat.id;
-        attributeFilterGroupIds = cat.attributeMaps.map((m) => m.attributeGroupId);
+        attributeFilterGroupIds = cat.attributeMaps.map(
+          (m) => m.attributeGroupId,
+        );
       }
     }
 
     // Collect dynamic attribute filters from query params
     // These are params not in the known params list
     const knownParams = new Set([
-      "page", "limit", "category", "brand", "search", "sort",
-      "minPrice", "maxPrice", "inStock", "featured", "useCases",
+      "page",
+      "limit",
+      "category",
+      "brand",
+      "search",
+      "sort",
+      "minPrice",
+      "maxPrice",
+      "inStock",
+      "featured",
+      "useCases",
     ]);
     const attributeFilters: { groupName: string; value: string }[] = [];
     for (const [key, value] of searchParams.entries()) {
@@ -124,9 +136,14 @@ export async function GET(request: NextRequest) {
     // Order by
     type ProductOrderBy = Prisma.ProductOrderByWithRelationInput;
     const orderBy: ProductOrderBy =
-      sort === "newest" ? { createdAt: "desc" }
-      : sort === "name_asc" ? { name: "asc" }
-      : { createdAt: "desc" };
+      sort === "newest"
+        ? { createdAt: "desc" }
+        : sort === "name_asc"
+          ? { name: "asc" }
+          : { createdAt: "desc" };
+
+    // For price sorting, load all variants to compute accurate prices
+    const loadAllVariants = sort === "price_asc" || sort === "price_desc";
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
@@ -146,7 +163,7 @@ export async function GET(request: NextRequest) {
               },
             },
             orderBy: { sortOrder: "asc" },
-            take: 1, // cheapest/first variant for card display
+            take: loadAllVariants ? undefined : 1, // Load all variants for price sorting
           },
         },
       }),
@@ -154,10 +171,32 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Filter products that have at least one matching variant (when attribute filters active)
-    const filteredProducts =
+    let filteredProducts =
       attributeFilters.length > 0
         ? products.filter((p) => p.variants.length > 0)
         : products;
+
+    // Apply JavaScript sorting for price-based sorts
+    if (sort === "price_asc" || sort === "price_desc") {
+      filteredProducts = filteredProducts
+        .map((product) => ({
+          ...product,
+          minPrice: Math.min(...product.variants.map((v) => Number(v.price))),
+          maxPrice: Math.max(...product.variants.map((v) => Number(v.price))),
+        }))
+        .sort((a, b) => {
+          if (sort === "price_asc") {
+            return a.minPrice - b.minPrice;
+          } else {
+            return b.maxPrice - a.maxPrice;
+          }
+        })
+        .map((product) => ({
+          ...product,
+          // Keep only the first variant for card display after sorting
+          variants: [product.variants[0]],
+        }));
+    }
 
     return NextResponse.json({
       products: filteredProducts,
@@ -170,7 +209,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("[PRODUCTS/GET]", error);
-    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch products" },
+      { status: 500 },
+    );
   }
 }
 
@@ -188,8 +230,11 @@ export async function POST(request: NextRequest) {
     const productResult = ProductSchema.safeParse(productData);
     if (!productResult.success) {
       return NextResponse.json(
-        { error: "Validation failed", details: productResult.error.flatten().fieldErrors },
-        { status: 400 }
+        {
+          error: "Validation failed",
+          details: productResult.error.flatten().fieldErrors,
+        },
+        { status: 400 },
       );
     }
 
@@ -210,7 +255,9 @@ export async function POST(request: NextRequest) {
           const { attributeValueIds, ...variantFields } = varResult.data;
 
           // Auto-generate SKU if not provided
-          const sku = variantFields.sku || `${category?.prefix || "XX"}-${String(i + 1).padStart(4, "0")}`;
+          const sku =
+            variantFields.sku ||
+            `${category?.prefix || "XX"}-${String(i + 1).padStart(4, "0")}`;
 
           const variant = await tx.productVariant.create({
             data: { ...variantFields, sku, productId: created.id },
@@ -232,7 +279,9 @@ export async function POST(request: NextRequest) {
       return tx.product.findUnique({
         where: { id: created.id },
         include: {
-          variants: { include: { attributes: { include: { attributeValue: true } } } },
+          variants: {
+            include: { attributes: { include: { attributeValue: true } } },
+          },
           media: true,
           category: true,
           brand: true,
@@ -243,9 +292,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ product }, { status: 201 });
   } catch (error: any) {
     if (error.code === "P2002") {
-      return NextResponse.json({ error: "Product slug or variant SKU already exists" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Product slug or variant SKU already exists" },
+        { status: 409 },
+      );
     }
     console.error("[PRODUCTS/POST]", error);
-    return NextResponse.json({ error: "Failed to create product" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create product" },
+      { status: 500 },
+    );
   }
 }

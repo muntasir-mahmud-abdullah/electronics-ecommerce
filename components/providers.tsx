@@ -4,6 +4,7 @@ import { Provider, useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { store, AppDispatch } from "@/store";
 import { setAuth, clearAuth } from "@/store/slices/auth";
+import { initializeFromStorage } from "@/store/slices/compare";
 
 function AuthHydrator({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch<AppDispatch>();
@@ -30,6 +31,8 @@ function AuthHydrator({ children }: { children: React.ReactNode }) {
     }
 
     hydrateAuth();
+    // Initialize compare state from session storage
+    dispatch(initializeFromStorage());
   }, [dispatch]);
 
   return <>{children}</>;
