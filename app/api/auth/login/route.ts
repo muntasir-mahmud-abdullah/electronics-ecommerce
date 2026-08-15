@@ -15,8 +15,11 @@ export async function POST(request: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: "Validation failed", details: result.error.flatten().fieldErrors },
-        { status: 400 }
+        {
+          error: "Validation failed",
+          details: result.error.flatten().fieldErrors,
+        },
+        { status: 400 },
       );
     }
 
@@ -24,12 +27,18 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.isActive) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 },
+      );
     }
 
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 },
+      );
     }
 
     const tokenPayload = {
@@ -43,13 +52,40 @@ export async function POST(request: NextRequest) {
     const refreshToken = await signRefreshToken({ sub: user.id });
 
     const response = NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
       accessToken,
     });
     setRefreshCookie(response, refreshToken);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("[AUTH/LOGIN]", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+
+    // Provide more specific error messages for debugging
+    if (
+      error.message?.includes("JWT_SECRET") ||
+      error.message?.includes("JWT_REFRESH_SECRET")
+    ) {
+      return NextResponse.json(
+        { error: "Server configuration error: Missing JWT secrets" },
+        { status: 500 },
+      );
+    }
+
+    if (error.message?.includes("DATABASE_URL")) {
+      return NextResponse.json(
+        { error: "Server configuration error: Database not configured" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

@@ -3,9 +3,17 @@ import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { Role } from "@prisma/client";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
+// Validate environment variables
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is not set");
+}
+if (!process.env.JWT_REFRESH_SECRET) {
+  throw new Error("JWT_REFRESH_SECRET environment variable is not set");
+}
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 const JWT_REFRESH_SECRET = new TextEncoder().encode(
-  process.env.JWT_REFRESH_SECRET!,
+  process.env.JWT_REFRESH_SECRET,
 );
 
 export interface JWTPayload {
@@ -19,21 +27,31 @@ export interface JWTPayload {
 // ─── Token creation ───────────────────────────────────────────────────────────
 
 export async function signAccessToken(payload: JWTPayload): Promise<string> {
-  return new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("15m")
-    .sign(JWT_SECRET);
+  try {
+    return new SignJWT({ ...payload })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("15m")
+      .sign(JWT_SECRET);
+  } catch (error) {
+    console.error("[AUTH] Failed to sign access token:", error);
+    throw new Error("Failed to generate access token");
+  }
 }
 
 export async function signRefreshToken(
   payload: Pick<JWTPayload, "sub">,
 ): Promise<string> {
-  return new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(JWT_REFRESH_SECRET);
+  try {
+    return new SignJWT({ ...payload })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("7d")
+      .sign(JWT_REFRESH_SECRET);
+  } catch (error) {
+    console.error("[AUTH] Failed to sign refresh token:", error);
+    throw new Error("Failed to generate refresh token");
+  }
 }
 
 // ─── Token verification ───────────────────────────────────────────────────────
