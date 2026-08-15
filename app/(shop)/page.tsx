@@ -76,14 +76,14 @@ export default async function Home() {
   // Fetch real data from database with retry logic
   let categoriesDb: any[] = [];
   let featuredProductsDb: any[] = [];
-  
+
   try {
     categoriesDb = await withRetry(() =>
       prisma.category.findMany({
         where: { isActive: true },
         include: { _count: { select: { products: true } } },
         orderBy: { sortOrder: "asc" },
-      })
+      }),
     );
     console.log(`[Home] Fetched ${categoriesDb.length} categories`);
   } catch (error: any) {
@@ -116,9 +116,11 @@ export default async function Home() {
           },
         },
         take: 8,
-      })
+      }),
     );
-    console.log(`[Home] Fetched ${featuredProductsDb.length} featured products`);
+    console.log(
+      `[Home] Fetched ${featuredProductsDb.length} featured products`,
+    );
   } catch (error: any) {
     console.error("[Home] Failed to fetch featured products after retries:", {
       message: error?.message || String(error),
@@ -301,7 +303,10 @@ export default async function Home() {
 
         <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-[#E5E7EB]">
           {featuredProductsDb.map((product) => (
-            <ProductCard key={product.id} product={JSON.parse(JSON.stringify(product))} />
+            <ProductCard
+              key={product.id}
+              product={JSON.parse(JSON.stringify(product))}
+            />
           ))}
         </div>
       </section>

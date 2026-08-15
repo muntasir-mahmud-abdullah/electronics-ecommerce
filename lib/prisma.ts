@@ -16,10 +16,7 @@ function createPrismaClient() {
 
   const client = new PrismaClient({
     adapter,
-    log:
-      process.env.NODE_ENV === "development"
-        ? []
-        : ["error"],
+    log: process.env.NODE_ENV === "development" ? [] : ["error"],
   });
 
   return client;
@@ -37,10 +34,10 @@ if (process.env.NODE_ENV !== "production") {
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  maxRetries = 2
+  maxRetries = 2,
 ): Promise<T> {
   let lastError: any;
-  
+
   for (let i = 0; i <= maxRetries; i++) {
     try {
       return await fn();
@@ -51,14 +48,14 @@ export async function withRetry<T>(
         code: error?.code,
         type: error?.constructor?.name,
       });
-      
+
       if (i < maxRetries) {
         const delay = 100 * Math.pow(2, i);
         console.log(`[Prisma] Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
-  
+
   throw lastError;
 }
