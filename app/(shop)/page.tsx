@@ -14,7 +14,7 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { prisma, withRetry } from "@/lib/prisma";
 import { ProductCard, PopulatedProduct } from "@/components/product-card";
 
 // Prevent prerendering during build — this page needs database access at runtime
@@ -73,35 +73,58 @@ const getCategoryIcon = (slug: string) => {
 };
 
 export default async function Home() {
-  // Fetch real data from database
-  const categoriesDb = await prisma.category.findMany({
-    where: { isActive: true },
-    include: { _count: { select: { products: true } } },
-    orderBy: { sortOrder: "asc" },
-  });
-
-  const featuredProductsDb = await prisma.product.findMany({
-    where: { status: "ACTIVE", isFeatured: true },
-    include: {
-      category: true,
-      brand: true,
-      media: { orderBy: { sortOrder: "asc" } },
-      variants: {
+  // Fetch real data from database with retry logic
+  let categoriesDb: any[] = [];
+  let featuredProductsDb: any[] = [];
+  
+  try {
+    categoriesDb = await withRetry(() =>
+      prisma.category.findMany({
         where: { isActive: true },
+        include: { _count: { select: { products: true } } },
+        orderBy: { sortOrder: "asc" },
+      })
+    );
+    console.log(`[Home] Fetched ${categoriesDb.length} categories`);
+  } catch (error: any) {
+    console.error("[Home] Failed to fetch categories after retries:", {
+      message: error?.message || String(error),
+      code: error?.code,
+    });
+  }
+
+  try {
+    featuredProductsDb = await withRetry(() =>
+      prisma.product.findMany({
+        where: { status: "ACTIVE", isFeatured: true },
         include: {
-          attributes: {
+          category: true,
+          brand: true,
+          media: { orderBy: { sortOrder: "asc" } },
+          variants: {
+            where: { isActive: true },
             include: {
-              attributeValue: {
-                include: { group: true },
+              attributes: {
+                include: {
+                  attributeValue: {
+                    include: { group: true },
+                  },
+                },
               },
             },
+            orderBy: { sortOrder: "asc" },
           },
         },
-        orderBy: { sortOrder: "asc" },
-      },
-    },
-    take: 8,
-  });
+        take: 8,
+      })
+    );
+    console.log(`[Home] Fetched ${featuredProductsDb.length} featured products`);
+  } catch (error: any) {
+    console.error("[Home] Failed to fetch featured products after retries:", {
+      message: error?.message || String(error),
+      code: error?.code,
+    });
+  }
 
   return (
     <div className="bg-[#F9FAFB] min-h-screen">
@@ -278,7 +301,7 @@ export default async function Home() {
 
         <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-[#E5E7EB]">
           {featuredProductsDb.map((product) => (
-            <ProductCard key={product.id} product={product as any} />
+            <ProductCard key={product.id} product={JSON.parse(JSON.stringify(product))} />
           ))}
         </div>
       </section>

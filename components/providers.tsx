@@ -9,13 +9,16 @@ function AuthHydrator({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
+    // Only attempt auth hydration on client side
+    if (typeof window === "undefined") return;
+
     async function hydrateAuth() {
       try {
         const res = await fetch("/api/auth/refresh", { method: "POST" });
         const data = await res.json();
-        
+
         if (res.ok && data.user) {
-          dispatch(setAuth({ user: data.user, accessToken: data.token }));
+          dispatch(setAuth({ user: data.user, accessToken: data.accessToken }));
         } else {
           // If refresh fails or no token, ensure state is clean
           dispatch(clearAuth());
@@ -25,7 +28,7 @@ function AuthHydrator({ children }: { children: React.ReactNode }) {
         dispatch(clearAuth());
       }
     }
-    
+
     hydrateAuth();
   }, [dispatch]);
 
@@ -35,9 +38,7 @@ function AuthHydrator({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
-      <AuthHydrator>
-        {children}
-      </AuthHydrator>
+      <AuthHydrator>{children}</AuthHydrator>
     </Provider>
   );
 }

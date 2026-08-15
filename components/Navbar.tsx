@@ -5,12 +5,16 @@ import { Search, ShoppingCart, User, Menu } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store";
 import { setCart } from "@/store/slices/cart";
-import { toggleCart, closeCart, openCart } from "@/store/slices/ui";
+import { openCart, closeCart } from "@/store/slices/ui";
 import { useState, useEffect } from "react";
 import { Cart } from "./Cart";
 
 export function Navbar() {
-  const { itemCount: cartItemCount, isLoaded: cartIsLoaded, total: cartTotal } = useSelector((state: RootState) => state.cart);
+  const {
+    itemCount: cartItemCount,
+    isLoaded: cartIsLoaded,
+    total: cartTotal,
+  } = useSelector((state: RootState) => state.cart);
   const isCartOpen = useSelector((state: RootState) => state.ui.isCartOpen);
   const dispatch = useDispatch<AppDispatch>();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -31,9 +35,14 @@ export function Navbar() {
       <div className="max-w-[1320px] mx-auto px-6">
         <div className="flex justify-between items-center h-[60px] gap-6">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-1.5 flex-shrink-0 group">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 flex-shrink-0 group"
+          >
             <div className="w-7 h-7 rounded-md bg-[#00D4E8] flex items-center justify-center">
-              <span className="text-[#0A0C14] font-black text-sm leading-none">G</span>
+              <span className="text-[#0A0C14] font-black text-sm leading-none">
+                G
+              </span>
             </div>
             <span className="font-bold text-[17px] tracking-tight text-white">
               GadgetHub<span className="text-[#00D4E8]">.</span>
@@ -71,7 +80,10 @@ export function Navbar() {
 
           {/* Right Actions */}
           <div className="hidden lg:flex items-center gap-5">
-            <button onClick={() => dispatch(openCart())} className="flex items-center gap-2 text-[#E2E8F0] hover:text-white transition-colors relative group">
+            <button
+              onClick={() => dispatch(openCart())}
+              className="flex items-center gap-2 text-[#E2E8F0] hover:text-white transition-colors relative group"
+            >
               <ShoppingCart className="w-4 h-4" color="white" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#00D4E8] text-[#0A0C14] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
@@ -93,7 +105,10 @@ export function Navbar() {
 
           {/* Mobile */}
           <div className="flex lg:hidden items-center gap-3">
-            <button onClick={() => dispatch(openCart())} className="text-[#8892A4] hover:text-white relative">
+            <button
+              onClick={() => dispatch(openCart())}
+              className="text-[#8892A4] hover:text-white relative"
+            >
               <ShoppingCart className="w-5 h-5" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-[#00D4E8] text-[#0A0C14] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
@@ -101,7 +116,10 @@ export function Navbar() {
                 </span>
               )}
             </button>
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="text-[#8892A4] hover:text-white">
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="text-[#8892A4] hover:text-white"
+            >
               <Menu className="w-5 h-5" />
             </button>
           </div>
@@ -118,7 +136,11 @@ export function Navbar() {
             { label: "Gaming", href: "/products?category=gaming" },
             { label: "Smart Home", href: "/products?category=smarthome" },
           ].map((link) => (
-            <Link key={link.label} href={link.href} className="text-[#8892A4] hover:text-white text-sm font-medium py-1">
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-[#8892A4] hover:text-white text-sm font-medium py-1"
+            >
               {link.label}
             </Link>
           ))}
@@ -130,4 +152,3 @@ export function Navbar() {
     </nav>
   );
 }
-
