@@ -1,18 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
     prefix: "",
     description: "",
+    isActive: true,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -34,15 +36,45 @@ export default function AdminCategoriesPage() {
     fetchCategories();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    let value = e.target.value;
-    if (e.target.name === "slug") {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    let value: string | boolean = e.target.value;
+    if (e.target.type === "checkbox") {
+      value = (e.target as HTMLInputElement).checked;
+    } else if (e.target.name === "slug") {
       value = value.toLowerCase().replace(/[^a-z0-9-]/g, "");
-    }
-    if (e.target.name === "prefix") {
+    } else if (e.target.name === "prefix") {
       value = value.toUpperCase().slice(0, 3);
     }
     setFormData({ ...formData, [e.target.name]: value });
+  };
+
+  const handleEdit = (category: any) => {
+    setFormData({
+      name: category.name,
+      slug: category.slug,
+      prefix: category.prefix,
+      description: category.description || "",
+      isActive: category.isActive,
+    });
+    setEditingId(category.id);
+    setIsFormOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
+    try {
+      const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchCategories();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete category");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,19 +83,23 @@ export default function AdminCategoriesPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/categories", {
-        method: "POST",
+      const url = editingId ? `/api/categories/${editingId}` : "/api/categories";
+      const method = editingId ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, isActive: true, sortOrder: 0 }),
+        body: JSON.stringify({ ...formData, sortOrder: 0 }),
       });
       const data = await res.json();
 
       if (res.ok) {
         setIsFormOpen(false);
-        setFormData({ name: "", slug: "", prefix: "", description: "" });
+        setEditingId(null);
+        setFormData({ name: "", slug: "", prefix: "", description: "", isActive: true });
         fetchCategories(); // refresh list
       } else {
-        setError(data.error || "Failed to create category");
+        setError(data.error || `Failed to ${editingId ? "update" : "create"} category`);
       }
     } catch (error) {
       console.error(error);
@@ -78,7 +114,11 @@ export default function AdminCategoriesPage() {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Categories</h2>
         <button
-          onClick={() => setIsFormOpen(!isFormOpen)}
+          onClick={() => {
+            setEditingId(null);
+            setFormData({ name: "", slug: "", prefix: "", description: "", isActive: true });
+            setIsFormOpen(!isFormOpen);
+          }}
           className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 font-medium text-sm transition-colors flex items-center gap-1.5"
         >
           <Plus className="w-4 h-4" />
@@ -88,7 +128,7 @@ export default function AdminCategoriesPage() {
 
       {isFormOpen && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">New Category</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{editingId ? "Edit Category" : "New Category"}</h3>
           {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm">{error}</div>}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,6 +175,19 @@ export default function AdminCategoriesPage() {
                   className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border"
                 />
               </div>
+              <div className="col-span-1 md:col-span-2 flex items-center gap-2 mt-2">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  name="isActive"
+                  checked={formData.isActive}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                />
+                <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+                  Active (Visible on storefront)
+                </label>
+              </div>
             </div>
             <div className="flex justify-end gap-3 mt-4">
               <button
@@ -149,7 +202,7 @@ export default function AdminCategoriesPage() {
                 disabled={submitting}
                 className="px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
               >
-                {submitting ? "Saving..." : "Save Category"}
+                {submitting ? "Saving..." : editingId ? "Update Category" : "Save Category"}
               </button>
             </div>
           </form>
@@ -172,21 +225,24 @@ export default function AdminCategoriesPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Subcategories
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                   Loading categories...
                 </td>
               </tr>
             ) : categories.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                   No categories found.
                 </td>
               </tr>
@@ -209,8 +265,24 @@ export default function AdminCategoriesPage() {
                       {category.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                     {category.children?.length || 0}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                    <button
+                      onClick={() => handleEdit(category)}
+                      className="text-indigo-600 hover:text-indigo-900 transition-colors"
+                      title="Edit Category"
+                    >
+                      <Edit2 className="w-4 h-4 inline" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(category.id)}
+                      className="text-red-600 hover:text-red-900 transition-colors"
+                      title="Delete Category"
+                    >
+                      <Trash2 className="w-4 h-4 inline" />
+                    </button>
                   </td>
                 </tr>
               ))

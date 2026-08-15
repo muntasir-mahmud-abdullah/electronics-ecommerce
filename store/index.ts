@@ -2,12 +2,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/auth";
 import cartReducer from "./slices/cart";
 import compareReducer from "./slices/compare";
+import uiReducer from "./slices/ui";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     cart: cartReducer,
     compare: compareReducer,
+    ui: uiReducer,
   },
   devTools: process.env.NODE_ENV !== "production",
 });

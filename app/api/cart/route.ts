@@ -50,13 +50,31 @@ function computeCartTotals(items: any[]) {
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthUser(request);
-    const sessionId = request.cookies.get("cart_session")?.value;
+    let sessionId = request.cookies.get("cart_session")?.value;
+    let isNewSession = false;
+
+    if (!user && !sessionId) {
+      sessionId = crypto.randomUUID();
+      isNewSession = true;
+    }
 
     const cart = await getOrCreateCart(user?.sub, sessionId || undefined);
     if (!cart) return NextResponse.json({ error: "Could not identify cart" }, { status: 400 });
 
     const totals = computeCartTotals(cart.items);
-    return NextResponse.json({ cart, ...totals });
+    
+    const response = NextResponse.json({ cart, ...totals });
+    if (isNewSession && sessionId) {
+      response.cookies.set("cart_session", sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: "/",
+      });
+    }
+    
+    return response;
   } catch (error) {
     console.error("[CART/GET]", error);
     return NextResponse.json({ error: "Failed to fetch cart" }, { status: 500 });

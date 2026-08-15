@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import {
   ArrowRight,
@@ -14,9 +12,10 @@ import {
   Home as HomeIcon,
   Watch,
   ChevronRight,
-  Star,
   ChevronLeft,
 } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { ProductCard, PopulatedProduct } from "@/components/product-card";
 
 // --- Data ---
 const TRUST_ITEMS = [
@@ -26,21 +25,11 @@ const TRUST_ITEMS = [
   { icon: Lock, label: "Secure Tech Payment" },
 ];
 
-const CATEGORIES = [
-  { icon: Headphones, label: "High-Res Audio", count: 12, slug: "audio" },
-  { icon: Monitor, label: "Computing & Rig", count: 6, slug: "laptops" },
-  { icon: Smartphone, label: "Mobile Devices", count: 14, slug: "smartphones" },
-  { icon: Gamepad2, label: "Gaming Pro Gear", count: 11, slug: "gaming" },
-  { icon: HomeIcon, label: "Smart Automation", count: 16, slug: "smarthome" },
-  { icon: Watch, label: "Biometric Wear", count: 9, slug: "wearables" },
-];
-
 const LAB_SETUPS = [
   {
     title: "Creative Workspace",
-    description:
-      "Designed for intensive render operations & 2070 GB video edit.",
-    href: "/products",
+    description: "Designed for intensive render operations & 2070 GB video edit.",
+    href: "/products?category=laptops",
     bg: "from-slate-800 to-[#111827]",
     accent: "#00D4E8",
     image: "/annie-spratt-6pMI--IXV-8-unsplash.jpg",
@@ -48,7 +37,7 @@ const LAB_SETUPS = [
   {
     title: "Competitive Esports Setup",
     description: "Max frame rates, 360Hz displays, low-latency controllers.",
-    href: "/products?category=gaming",
+    href: "/products?category=monitors",
     bg: "from-sky-900 to-[#111827]",
     accent: "#00D4E8",
     image: "/ella-don-JomkRNkzKhE-unsplash.jpg",
@@ -63,125 +52,48 @@ const LAB_SETUPS = [
   },
 ];
 
-const BEST_SELLERS = [
-  {
-    badge: "BEST SELLER",
-    badgeColor: "#00D4E8",
-    category: "CIRCU SOUNDLABS",
-    name: "Acoustix Pro Max",
-    price: 349,
-    rating: 4.5,
-    reviews: 142,
-    specs: ["Active ANC", "Hi-Res Audio", "60h Battery"],
-  },
-  {
-    badge: null,
-    badgeColor: null,
-    category: "X-COMPUTE",
-    name: "Quantum Pro Rig",
-    price: 1899,
-    rating: 4.0,
-    reviews: 88,
-    specs: ["Intel Core Ultra", "64GB DDR5", "2TB NVMe"],
-  },
-  {
-    badge: "PRO CHOICE",
-    badgeColor: "#00D4E8",
-    category: "VERTEX",
-    name: "Vanguard Book Pro",
-    price: 1249,
-    rating: 4.5,
-    reviews: 213,
-    specs: ["OLED 120Hz", "M4 Pro Chip", "1TB SSD"],
-  },
-  {
-    badge: null,
-    badgeColor: null,
-    category: "CIRCU ENERGY",
-    name: "Apex Chrono Chronometer",
-    price: 299,
-    rating: 4.0,
-    reviews: 54,
-    specs: ["Bio-Sensor v2", "AOD Sapphire", "30d Water"],
-  },
-];
+// Fallback Icons based on category slugs
+const getCategoryIcon = (slug: string) => {
+  switch (slug) {
+    case "audio": return Headphones;
+    case "laptops": return Monitor;
+    case "smartphones": return Smartphone;
+    case "monitors": return Monitor;
+    default: return Gamepad2;
+  }
+};
 
-// --- Sub-components ---
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          className={`w-3 h-3 ${i <= Math.floor(rating) ? "fill-[#F59E0B] text-[#F59E0B]" : i - 0.5 <= rating ? "fill-[#F59E0B]/50 text-[#F59E0B]/50" : "fill-[#E5E7EB] text-[#E5E7EB]"}`}
-        />
-      ))}
-    </div>
-  );
-}
+export default async function Home() {
+  // Fetch real data from database
+  const categoriesDb = await prisma.category.findMany({
+    where: { isActive: true },
+    include: { _count: { select: { products: true } } },
+    orderBy: { sortOrder: "asc" }
+  });
 
-function ProductCard({ product }: { product: (typeof BEST_SELLERS)[0] }) {
-  return (
-    <div className="flex-shrink-0 w-[240px] bg-white border border-[#E5E7EB] rounded-lg overflow-hidden hover:border-[#00D4E8]/50 transition-colors group flex flex-col">
-      {/* Image placeholder */}
-      <div className="relative h-[200px] bg-[#F9FAFB] rounded-lg flex items-center justify-center">
-        {product.badge && (
-          <span
-            className="absolute top-2 bg-blue-50 left-2 text-[10px] font-bold px-2 py-1 rounded"
-            style={{
-              color: product.badgeColor!,
-              border: `1px solid ${product.badgeColor}`,
-            }}
-          >
-            {product.badge}
-          </span>
-        )}
-        <div className="w-full h-full bg-[#F4F5F7] flex items-center justify-center mix-blend-multiply transition-transform duration-500">
-          <div className="text-[#9CA3AF] text-xs">No Image</div>
-        </div>
-      </div>
+  const featuredProductsDb = await prisma.product.findMany({
+    where: { status: "ACTIVE", isFeatured: true },
+    include: {
+      category: true,
+      brand: true,
+      media: { orderBy: { sortOrder: "asc" } },
+      variants: {
+        where: { isActive: true },
+        include: {
+          attributes: {
+            include: {
+              attributeValue: {
+                include: { group: true }
+              }
+            }
+          }
+        },
+        orderBy: { sortOrder: "asc" }
+      }
+    },
+    take: 8
+  });
 
-      <div className="flex-1 gap-1 flex p-3 flex-col">
-        <p className="text-[10px] font-bold text-[#6B7280] tracking-widest">
-          {product.category}
-        </p>
-        <h4 className="text-[#111827] font-bold text-[15px] leading-snug line-clamp-2">
-          {product.name}
-        </h4>
-
-        <div className="flex items-center justify-between">
-          <p className="text-[#111827] font-black text-[20px]">
-            ${product.price.toLocaleString()}
-          </p>
-          <div className="flex items-center gap-1.5">
-            <StarRating rating={product.rating} />
-            <span className="text-[#6B7280] text-[11px] font-medium">
-              ({product.reviews.toLocaleString()})
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-nowrap py-1 overflow-x-scroll scrollbar-none gap-1.5">
-          {product.specs.map((s) => (
-            <span
-              key={s}
-              className="text-[10px] text-nowrap px-1 rounded-sm bg-gray-100 border border-[#E5E7EB] text-[#4B5563] font-medium"
-            >
-              {s}
-            </span>
-          ))}
-        </div>
-
-        <button className="mt-1 w-full bg-[#0A0C14] hover:bg-[#1E2235] text-white font-semibold text-[13px] py-1.5 rounded-lg transition-colors">
-          Add to Cart
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// --- Page ---
-export default function Home() {
   return (
     <div className="bg-[#F9FAFB] min-h-screen">
       {/* ── 1. HERO ───────────────────────────────────────────────────── */}
@@ -193,17 +105,9 @@ export default function Home() {
           backgroundPosition: "center",
         }}
       >
-        {/* BG gradient layer with dark contrast */}
         <div className="absolute inset-0 bg-[#0A0F24] opacity-85 z-10" />
-        {/* BG decorative circles */}
-        {/* <div className="absolute right-10 top-1/2 -translate-y-1/2 w-[480px] h-[480px] rounded-full border border-[#00D4E8]/10 opacity-60" />
-        <div className="absolute right-20 top-1/2 -translate-y-1/2 w-[360px] h-[360px] rounded-full border border-[#00D4E8]/15 opacity-60" />
-        <div className="absolute right-28 top-1/2 -translate-y-1/2 w-[240px] h-[240px] rounded-full bg-[#00D4E8]/5 flex items-center justify-center">
-          <div className="w-32 h-32 rounded-full bg-[#00D4E8]/10" />
-        </div> */}
-        {/* Subtle grid overlay */}
         <div
-          className="absolute inset-0 opacity-5"
+          className="absolute inset-0 opacity-5 z-10"
           style={{
             backgroundImage:
               "linear-gradient(#00D4E8 1px, transparent 1px), linear-gradient(90deg, #00D4E8 1px, transparent 1px)",
@@ -233,10 +137,10 @@ export default function Home() {
                 Explore SoundLabs
               </Link>
               <Link
-                href="/compare"
+                href="/products"
                 className="flex items-center gap-2 border border-[#2E3555] hover:border-[#00D4E8]/50 text-white font-semibold px-6 py-3 rounded-md text-sm transition-colors"
               >
-                Technical Specsheet
+                All Products
               </Link>
             </div>
           </div>
@@ -244,9 +148,9 @@ export default function Home() {
       </section>
 
       {/* ── 2. TRUST BAR ─────────────────────────────────────────────── */}
-      <section className="border-y border-[#1E2235] bg-[#0D0F1A]">
+      <section className="bg-[#0D0F1A]">
         <div className="max-w-[1320px] mx-auto px-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-[#1E2235]">
+          <div className="grid grid-cols-2 lg:grid-cols-4">
             {TRUST_ITEMS.map(({ icon: Icon, label }) => (
               <div key={label} className="flex items-center gap-3 px-6 py-4">
                 <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-[#00D4E8]">
@@ -271,25 +175,28 @@ export default function Home() {
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {CATEGORIES.map(({ icon: Icon, label, count, slug }) => (
-            <Link
-              key={slug}
-              href={`/products?category=${slug}`}
-              className="group flex flex-col items-center gap-3 p-6 rounded-xl bg-white border border-[#E5E7EB] hover:border-[#00D4E8] hover:shadow-sm transition-all"
-            >
-              <div className="w-10 h-10 flex items-center justify-center text-[#4B5563] group-hover:text-[#00D4E8] transition-colors">
-                <Icon className="w-6 h-6" />
-              </div>
-              <div className="text-center">
-                <p className="text-[#111827] text-[13px] font-bold leading-tight">
-                  {label}
-                </p>
-                <p className="text-[#9CA3AF] text-[11px] mt-0.5">
-                  {count} Models
-                </p>
-              </div>
-            </Link>
-          ))}
+          {categoriesDb.map((cat) => {
+            const Icon = getCategoryIcon(cat.slug);
+            return (
+              <Link
+                key={cat.slug}
+                href={`/products?category=${cat.slug}`}
+                className="group flex flex-col items-center gap-3 p-6 rounded-xl bg-white border border-[#E5E7EB] hover:border-[#00D4E8] hover:shadow-sm transition-all"
+              >
+                <div className="w-10 h-10 flex items-center justify-center text-[#4B5563] group-hover:text-[#00D4E8] transition-colors">
+                  <Icon className="w-6 h-6" />
+                </div>
+                <div className="text-center">
+                  <p className="text-[#111827] text-[13px] font-bold leading-tight">
+                    {cat.name}
+                  </p>
+                  <p className="text-[#9CA3AF] text-[11px] mt-0.5">
+                    {cat._count.products} Models
+                  </p>
+                </div>
+              </Link>
+            )
+          })}
         </div>
       </section>
 
@@ -299,7 +206,7 @@ export default function Home() {
           Shop by Lab & Setup
         </h2>
         <p className="text-[#6B7280] text-[13px] mb-8">
-          Hardware packages pre-configured for ultimate work workflows.
+          Hardware packages pre-configured for ultimate workflows.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -314,7 +221,6 @@ export default function Home() {
                 backgroundPosition: "center",
               }}
             >
-              {/* Dark gradient overlay for contrast */}
               <div
                 className="absolute inset-0 opacity-65"
                 style={{
@@ -346,7 +252,7 @@ export default function Home() {
       <section className="max-w-[1320px] mx-auto px-6 py-12 pb-20">
         <div className="flex items-end justify-between mb-1">
           <h2 className="text-[22px] font-black text-[#111827] tracking-tight">
-            Best Sellers in Performance
+            Featured Performance Tech
           </h2>
           <div className="flex gap-2">
             <button className="w-8 h-8 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#4B5563] hover:text-[#111827] hover:border-[#D1D5DB] transition-all">
@@ -362,11 +268,12 @@ export default function Home() {
         </p>
 
         <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-[#E5E7EB]">
-          {BEST_SELLERS.map((product) => (
-            <ProductCard key={product.name} product={product} />
+          {featuredProductsDb.map((product) => (
+            <ProductCard key={product.id} product={product as any} />
           ))}
         </div>
       </section>
     </div>
   );
 }
+

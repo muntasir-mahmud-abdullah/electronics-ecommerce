@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Navbar } from "@/components/Navbar";
+import { Toast } from "@/components/toast";
 import Link from "next/link";
 import { Globe, Mail, MessageCircle, Video, Code } from "lucide-react";
 
@@ -7,6 +8,7 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#0A0C14]">
       <Navbar />
+      <Toast />
       <main className="flex-1 pt-[60px]">
         {children}
       </main>

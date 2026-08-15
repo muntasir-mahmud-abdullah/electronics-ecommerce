@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { ShoppingCart, Check, Star, ChevronRight, Minus, Plus } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store";
+import { setCart } from "@/store/slices/cart";
+import { showToast, openCart } from "@/store/slices/ui";
 import Link from "next/link";
 
 // --- Static presentation data ---
@@ -151,12 +153,17 @@ export default function ProductDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ variantId: selectedVariant.id, quantity }),
       });
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
-        alert(data.error || "Failed to add to cart");
+        dispatch(showToast({ message: data.error || "Failed to add to cart", type: "error" }));
+      } else {
+        dispatch(setCart(data));
+        dispatch(showToast({ message: `${product.name} added to cart!`, type: "success" }));
+        dispatch(openCart());
       }
     } catch (error) {
       console.error(error);
+      dispatch(showToast({ message: "Something went wrong", type: "error" }));
     }
   };
 

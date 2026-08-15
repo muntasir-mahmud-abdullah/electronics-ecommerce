@@ -31,16 +31,22 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             Categories
           </Link>
           <Link
+            href="/admin/attributes"
+            className="block px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+          >
+            Attributes
+          </Link>
+          <Link
+            href="/admin/brands"
+            className="block px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+          >
+            Brands
+          </Link>
+          <Link
             href="/admin/orders"
             className="block px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
           >
             Orders
-          </Link>
-          <Link
-            href="/admin/inventory"
-            className="block px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
-          >
-            Inventory
           </Link>
         </nav>
       </aside>

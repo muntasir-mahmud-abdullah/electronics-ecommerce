@@ -1,18 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Search, ShoppingCart, User, Menu, Truck, Shield, RotateCcw, Lock, ChevronRight, Star, Headphones, Monitor, Smartphone, Gamepad2, Home, Watch, Cpu } from "lucide-react";
+import { Search, ShoppingCart, User, Menu } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store";
 import { setCart } from "@/store/slices/cart";
+import { toggleCart, closeCart, openCart } from "@/store/slices/ui";
 import { useState, useEffect } from "react";
 import { Cart } from "./Cart";
 
 export function Navbar() {
   const { itemCount: cartItemCount, isLoaded: cartIsLoaded, total: cartTotal } = useSelector((state: RootState) => state.cart);
+  const isCartOpen = useSelector((state: RootState) => state.ui.isCartOpen);
   const dispatch = useDispatch<AppDispatch>();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     if (!cartIsLoaded) {
@@ -70,7 +71,7 @@ export function Navbar() {
 
           {/* Right Actions */}
           <div className="hidden lg:flex items-center gap-5">
-            <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-2 text-[#E2E8F0] hover:text-white transition-colors relative group">
+            <button onClick={() => dispatch(openCart())} className="flex items-center gap-2 text-[#E2E8F0] hover:text-white transition-colors relative group">
               <ShoppingCart className="w-4 h-4" color="white" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#00D4E8] text-[#0A0C14] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
@@ -92,7 +93,7 @@ export function Navbar() {
 
           {/* Mobile */}
           <div className="flex lg:hidden items-center gap-3">
-            <button onClick={() => setIsCartOpen(true)} className="text-[#8892A4] hover:text-white relative">
+            <button onClick={() => dispatch(openCart())} className="text-[#8892A4] hover:text-white relative">
               <ShoppingCart className="w-5 h-5" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-[#00D4E8] text-[#0A0C14] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
@@ -125,7 +126,8 @@ export function Navbar() {
       )}
 
       {/* Cart Slide-over */}
-      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <Cart isOpen={isCartOpen} onClose={() => dispatch(closeCart())} />
     </nav>
   );
 }
+

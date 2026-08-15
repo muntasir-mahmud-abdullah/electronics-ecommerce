@@ -39,7 +39,13 @@ function computeCartTotals(items: any[]) {
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthUser(request);
-    const sessionId = request.cookies.get("cart_session")?.value;
+    let sessionId = request.cookies.get("cart_session")?.value;
+    let isNewSession = false;
+
+    if (!user && !sessionId) {
+      sessionId = crypto.randomUUID();
+      isNewSession = true;
+    }
 
     const body = await request.json();
     const result = AddToCartSchema.safeParse(body);
@@ -103,7 +109,19 @@ export async function POST(request: NextRequest) {
     });
 
     const totals = computeCartTotals(updatedCart!.items);
-    return NextResponse.json({ cart: updatedCart, ...totals });
+    
+    const response = NextResponse.json({ cart: updatedCart, ...totals });
+    if (isNewSession && sessionId) {
+      response.cookies.set("cart_session", sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: "/",
+      });
+    }
+    
+    return response;
   } catch (error) {
     console.error("[CART/ITEMS/POST]", error);
     return NextResponse.json({ error: "Failed to add item to cart" }, { status: 500 });

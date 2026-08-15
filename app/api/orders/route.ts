@@ -113,6 +113,26 @@ export async function POST(request: NextRequest) {
           },
         },
       });
+    } else if (sessionId) {
+      cart = await prisma.cart.findUnique({
+        where: { sessionId },
+        include: {
+          items: {
+            include: {
+              variant: {
+                include: {
+                  product: {
+                    include: { media: { where: { isPrimary: true }, take: 1 } },
+                  },
+                  attributes: {
+                    include: { attributeValue: { include: { group: true } } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
     }
 
     if (!cart || cart.items.length === 0) {
