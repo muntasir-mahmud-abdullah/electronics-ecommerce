@@ -11,232 +11,274 @@ async function main() {
   const superAdmin = await prisma.user.upsert({
     where: { email: 'admin@gadgethub.local' },
     update: {},
-    create: {
-      email: 'admin@gadgethub.local',
-      name: 'Super Admin',
-      passwordHash,
-      role: Role.SUPER_ADMIN,
-    },
+    create: { email: 'admin@gadgethub.local', name: 'Super Admin', passwordHash, role: Role.SUPER_ADMIN },
   });
 
   const manager = await prisma.user.upsert({
     where: { email: 'manager@gadgethub.local' },
     update: {},
-    create: {
-      email: 'manager@gadgethub.local',
-      name: 'Store Manager',
-      passwordHash,
-      role: Role.MANAGER,
-    },
+    create: { email: 'manager@gadgethub.local', name: 'Store Manager', passwordHash, role: Role.MANAGER },
   });
 
   const customer = await prisma.user.upsert({
     where: { email: 'customer@gadgethub.local' },
     update: {},
-    create: {
-      email: 'customer@gadgethub.local',
-      name: 'Test Customer',
-      passwordHash,
-      role: Role.CUSTOMER,
-    },
+    create: { email: 'customer@gadgethub.local', name: 'Test Customer', passwordHash, role: Role.CUSTOMER },
   });
 
   // 2. Create Brands
-  const apple = await prisma.brand.upsert({
-    where: { slug: 'apple' },
-    update: {},
-    create: { name: 'Apple', slug: 'apple' },
-  });
-
-  const samsung = await prisma.brand.upsert({
-    where: { slug: 'samsung' },
-    update: {},
-    create: { name: 'Samsung', slug: 'samsung' },
-  });
-
-  const asus = await prisma.brand.upsert({
-    where: { slug: 'asus' },
-    update: {},
-    create: { name: 'ASUS', slug: 'asus' },
-  });
+  const brandsData = [
+    { name: 'Apple', slug: 'apple' },
+    { name: 'Samsung', slug: 'samsung' },
+    { name: 'ASUS', slug: 'asus' },
+    { name: 'Sony', slug: 'sony' },
+    { name: 'Dell', slug: 'dell' },
+    { name: 'Logitech', slug: 'logitech' },
+    { name: 'Circu SoundLabs', slug: 'circu-soundlabs' },
+    { name: 'Vertex', slug: 'vertex' },
+    { name: 'X-Compute', slug: 'x-compute' },
+  ];
+  
+  const brands: Record<string, any> = {};
+  for (const b of brandsData) {
+    brands[b.slug] = await prisma.brand.upsert({
+      where: { slug: b.slug },
+      update: {},
+      create: b,
+    });
+  }
 
   // 3. Create Categories
-  const laptops = await prisma.category.upsert({
-    where: { slug: 'laptops' },
-    update: {},
-    create: { name: 'Laptops', slug: 'laptops', prefix: 'LAP' },
-  });
+  const categoriesData = [
+    { name: 'Laptops', slug: 'laptops', prefix: 'LAP' },
+    { name: 'Smartphones', slug: 'smartphones', prefix: 'SMP' },
+    { name: 'Monitors', slug: 'monitors', prefix: 'MNT' },
+    { name: 'Audio', slug: 'audio', prefix: 'AUD' },
+  ];
+  
+  const categories: Record<string, any> = {};
+  for (const c of categoriesData) {
+    categories[c.slug] = await prisma.category.upsert({
+      where: { slug: c.slug },
+      update: {},
+      create: c,
+    });
+  }
 
-  const smartphones = await prisma.category.upsert({
-    where: { slug: 'smartphones' },
-    update: {},
-    create: { name: 'Smartphones', slug: 'smartphones', prefix: 'SMP' },
-  });
+  // Clear carts, orders, and wishlists first to cascade delete items
+  await prisma.cartItem.deleteMany();
+  await prisma.cart.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.wishlistItem.deleteMany();
+
+  // Clear products first to cascade delete product_variants and product_attributes
+  await prisma.product.deleteMany();
+  await prisma.categoryAttributeMap.deleteMany();
 
   // 4. Create Attribute Groups and Values
-  // -- RAM --
-  const attrRam = await prisma.attributeGroup.create({
-    data: {
-      name: 'RAM',
-      unit: 'GB',
-      isVariantDefining: true,
-      values: {
-        create: [
-          { value: '8', sortOrder: 1 },
-          { value: '16', sortOrder: 2 },
-          { value: '32', sortOrder: 3 },
-        ],
-      },
-    },
-    include: { values: true },
-  });
+  // We'll reset attribute groups first to ensure clean state
+  await prisma.attributeValue.deleteMany();
+  await prisma.attributeGroup.deleteMany();
 
-  // -- Storage --
-  const attrStorage = await prisma.attributeGroup.create({
-    data: {
-      name: 'Storage',
-      isVariantDefining: true,
-      values: {
-        create: [
-          { value: '256GB SSD', sortOrder: 1 },
-          { value: '512GB SSD', sortOrder: 2 },
-          { value: '1TB SSD', sortOrder: 3 },
-          { value: '128GB', sortOrder: 1 },
-          { value: '256GB', sortOrder: 2 },
-        ],
-      },
-    },
-    include: { values: true },
-  });
+  const groupsData = [
+    { name: 'System RAM', unit: 'GB', isVariantDefining: true, values: ['8', '16', '32', '64'] },
+    { name: 'Internal Storage', isVariantDefining: true, values: ['256GB SSD', '512GB SSD', '1TB SSD', '2TB SSD', '128GB', '256GB', '512GB'] },
+    { name: 'Processor Tech', isVariantDefining: false, values: ['Apple M2', 'Apple M3', 'Apple M4 Series', 'Intel Ultra Core', 'AMD Ryzen Thread', 'ARM Apex Silicon', 'Snapdragon 8 Gen 2', 'Snapdragon 8 Gen 3'] },
+    { name: 'Screen Size', unit: 'inches', isVariantDefining: false, values: ['13-inch', '14-inch', '16-inch', '17-inch', '6.1', '6.8', '27', '32'] },
+    { name: 'Transducer Element', isVariantDefining: false, values: ['50mm Electrostatic', '40mm Dynamic', 'Planar Magnetic'] },
+    { name: 'Wireless Connection Protocol', isVariantDefining: false, values: ['Bluetooth 5.3', 'Bluetooth 5.4 aptX', 'Wi-Fi 7'] },
+  ];
 
-  // -- Processor --
-  const attrProcessor = await prisma.attributeGroup.create({
-    data: {
-      name: 'Processor',
-      isVariantDefining: false,
-      values: {
-        create: [
-          { value: 'Apple M2' },
-          { value: 'Apple M3' },
-          { value: 'Snapdragon 8 Gen 2' },
-          { value: 'Intel Core i7-13700H' },
-        ],
+  const attrs: Record<string, any> = {};
+  for (const g of groupsData) {
+    attrs[g.name] = await prisma.attributeGroup.create({
+      data: {
+        name: g.name,
+        unit: g.unit,
+        isVariantDefining: g.isVariantDefining,
+        values: {
+          create: g.values.map((v, idx) => ({ value: v, sortOrder: idx + 1 })),
+        },
       },
-    },
-    include: { values: true },
-  });
+      include: { values: true },
+    });
+  }
 
-  // -- Screen --
-  const attrScreen = await prisma.attributeGroup.create({
-    data: {
-      name: 'Screen Size',
-      unit: 'inches',
-      isVariantDefining: false,
-      values: {
-        create: [
-          { value: '13.6' },
-          { value: '14' },
-          { value: '15.6' },
-          { value: '6.1' },
-          { value: '6.8' },
-        ],
-      },
-    },
-    include: { values: true },
-  });
+  // Helper to find value ID
+  const valId = (groupName: string, valStr: string) => {
+    const group = attrs[groupName];
+    if (!group) throw new Error(`Group ${groupName} not found`);
+    const val = group.values.find((v: any) => v.value === valStr);
+    if (!val) throw new Error(`Value ${valStr} not found in ${groupName}`);
+    return val.id;
+  };
 
   // 5. Map Attributes to Categories
-  await prisma.categoryAttributeMap.createMany({
-    data: [
-      // Laptops map
-      { categoryId: laptops.id, attributeGroupId: attrRam.id, displayOrder: 1 },
-      { categoryId: laptops.id, attributeGroupId: attrStorage.id, displayOrder: 2 },
-      { categoryId: laptops.id, attributeGroupId: attrProcessor.id, displayOrder: 3 },
-      { categoryId: laptops.id, attributeGroupId: attrScreen.id, displayOrder: 4 },
-      // Smartphones map
-      { categoryId: smartphones.id, attributeGroupId: attrRam.id, displayOrder: 1 },
-      { categoryId: smartphones.id, attributeGroupId: attrStorage.id, displayOrder: 2 },
-      { categoryId: smartphones.id, attributeGroupId: attrProcessor.id, displayOrder: 3 },
-      { categoryId: smartphones.id, attributeGroupId: attrScreen.id, displayOrder: 4 },
-    ],
-    skipDuplicates: true,
-  });
+  await prisma.categoryAttributeMap.deleteMany();
+  
+  const mapData = [
+    // Laptops
+    { cat: 'laptops', group: 'System RAM', order: 1 },
+    { cat: 'laptops', group: 'Internal Storage', order: 2 },
+    { cat: 'laptops', group: 'Processor Tech', order: 3 },
+    { cat: 'laptops', group: 'Screen Size', order: 4 },
+    // Smartphones
+    { cat: 'smartphones', group: 'System RAM', order: 1 },
+    { cat: 'smartphones', group: 'Internal Storage', order: 2 },
+    { cat: 'smartphones', group: 'Processor Tech', order: 3 },
+    { cat: 'smartphones', group: 'Screen Size', order: 4 },
+    // Monitors
+    { cat: 'monitors', group: 'Screen Size', order: 1 },
+    // Audio
+    { cat: 'audio', group: 'Transducer Element', order: 1 },
+    { cat: 'audio', group: 'Wireless Connection Protocol', order: 2 },
+  ];
 
-  // 6. Create Products with Variants
-  // Product 1: MacBook Air M2
-  const macbook = await prisma.product.create({
-    data: {
-      name: 'MacBook Air M2',
-      slug: 'macbook-air-m2',
-      description: 'Supercharged by M2. Strikingly thin design.',
-      categoryId: laptops.id,
-      brandId: apple.id,
-      status: 'ACTIVE',
-      useCaseTags: ['work', 'study', 'content creation'],
-      isFeatured: true,
-      variants: {
-        create: [
-          {
-            sku: 'LAP-0001',
-            price: 999,
-            stock: 50,
-            attributes: {
-              create: [
-                { attributeValueId: attrRam.values.find((v) => v.value === '8')!.id },
-                { attributeValueId: attrStorage.values.find((v) => v.value === '256GB SSD')!.id },
-                { attributeValueId: attrProcessor.values.find((v) => v.value === 'Apple M2')!.id },
-                { attributeValueId: attrScreen.values.find((v) => v.value === '13.6')!.id },
-              ],
-            },
-          },
-          {
-            sku: 'LAP-0002',
-            price: 1199,
-            stock: 20,
-            attributes: {
-              create: [
-                { attributeValueId: attrRam.values.find((v) => v.value === '16')!.id },
-                { attributeValueId: attrStorage.values.find((v) => v.value === '512GB SSD')!.id },
-                { attributeValueId: attrProcessor.values.find((v) => v.value === 'Apple M2')!.id },
-                { attributeValueId: attrScreen.values.find((v) => v.value === '13.6')!.id },
-              ],
-            },
-          },
-        ],
+  for (const m of mapData) {
+    await prisma.categoryAttributeMap.create({
+      data: {
+        categoryId: categories[m.cat].id,
+        attributeGroupId: attrs[m.group].id,
+        displayOrder: m.order,
       },
-    },
-  });
+    });
+  }
 
-  // Product 2: Samsung Galaxy S23 Ultra
-  const s23 = await prisma.product.create({
-    data: {
-      name: 'Samsung Galaxy S23 Ultra',
-      slug: 'samsung-galaxy-s23-ultra',
-      description: 'Epic nights are coming. The latest Galaxy S series.',
-      categoryId: smartphones.id,
-      brandId: samsung.id,
-      status: 'ACTIVE',
-      useCaseTags: ['gaming', 'photography', 'everyday'],
-      variants: {
-        create: [
-          {
-            sku: 'SMP-0001',
-            price: 1199,
-            salePrice: 1099,
-            stock: 100,
-            attributes: {
-              create: [
-                { attributeValueId: attrRam.values.find((v) => v.value === '8')!.id },
-                { attributeValueId: attrStorage.values.find((v) => v.value === '256GB')!.id },
-                { attributeValueId: attrProcessor.values.find((v) => v.value === 'Snapdragon 8 Gen 2')!.id },
-                { attributeValueId: attrScreen.values.find((v) => v.value === '6.8')!.id },
-              ],
-            },
-          },
-        ],
-      },
+  // 6. Create Products
+  await prisma.product.deleteMany(); // Reset products for clean seed
+
+  const productsToSeed = [
+    {
+      name: 'MacBook Air M2', slug: 'macbook-air-m2', cat: 'laptops', brand: 'apple',
+      variants: [
+        { sku: 'LAP-001', price: 999, attrs: { 'System RAM': '8', 'Internal Storage': '256GB SSD', 'Processor Tech': 'Apple M2', 'Screen Size': '13-inch' } },
+        { sku: 'LAP-002', price: 1199, attrs: { 'System RAM': '16', 'Internal Storage': '512GB SSD', 'Processor Tech': 'Apple M2', 'Screen Size': '13-inch' } }
+      ]
     },
-  });
+    {
+      name: 'MacBook Pro M3', slug: 'macbook-pro-m3', cat: 'laptops', brand: 'apple',
+      variants: [
+        { sku: 'LAP-003', price: 1599, attrs: { 'System RAM': '16', 'Internal Storage': '512GB SSD', 'Processor Tech': 'Apple M3', 'Screen Size': '14-inch' } },
+        { sku: 'LAP-004', price: 1999, attrs: { 'System RAM': '32', 'Internal Storage': '1TB SSD', 'Processor Tech': 'Apple M3', 'Screen Size': '14-inch' } }
+      ]
+    },
+    {
+      name: 'Dell XPS 16', slug: 'dell-xps-16', cat: 'laptops', brand: 'dell',
+      variants: [
+        { sku: 'LAP-005', price: 1899, attrs: { 'System RAM': '32', 'Internal Storage': '1TB SSD', 'Processor Tech': 'Intel Ultra Core', 'Screen Size': '16-inch' } }
+      ]
+    },
+    {
+      name: 'ASUS ROG Zephyrus', slug: 'asus-rog', cat: 'laptops', brand: 'asus',
+      variants: [
+        { sku: 'LAP-006', price: 2199, attrs: { 'System RAM': '64', 'Internal Storage': '2TB SSD', 'Processor Tech': 'AMD Ryzen Thread', 'Screen Size': '16-inch' } }
+      ]
+    },
+    {
+      name: 'X-Compute Workstation', slug: 'x-compute-workstation', cat: 'laptops', brand: 'x-compute',
+      variants: [
+        { sku: 'LAP-007', price: 2999, attrs: { 'System RAM': '64', 'Internal Storage': '2TB SSD', 'Processor Tech': 'ARM Apex Silicon', 'Screen Size': '17-inch' } }
+      ]
+    },
+    {
+      name: 'Galaxy S23 Ultra', slug: 's23-ultra', cat: 'smartphones', brand: 'samsung',
+      variants: [
+        { sku: 'SMP-001', price: 1199, attrs: { 'System RAM': '8', 'Internal Storage': '256GB', 'Processor Tech': 'Snapdragon 8 Gen 2', 'Screen Size': '6.8' } }
+      ]
+    },
+    {
+      name: 'Galaxy S24 Ultra', slug: 's24-ultra', cat: 'smartphones', brand: 'samsung',
+      variants: [
+        { sku: 'SMP-002', price: 1299, attrs: { 'System RAM': '16', 'Internal Storage': '512GB', 'Processor Tech': 'Snapdragon 8 Gen 3', 'Screen Size': '6.8' } }
+      ]
+    },
+    {
+      name: 'iPhone 15 Pro', slug: 'iphone-15-pro', cat: 'smartphones', brand: 'apple',
+      variants: [
+        { sku: 'SMP-003', price: 999, attrs: { 'System RAM': '8', 'Internal Storage': '256GB', 'Processor Tech': 'Apple M3', 'Screen Size': '6.1' } }
+      ]
+    },
+    {
+      name: 'Dell UltraSharp 27', slug: 'dell-u27', cat: 'monitors', brand: 'dell',
+      variants: [
+        { sku: 'MNT-001', price: 599, attrs: { 'Screen Size': '27' } }
+      ]
+    },
+    {
+      name: 'Dell UltraSharp 32 4K', slug: 'dell-u32', cat: 'monitors', brand: 'dell',
+      variants: [
+        { sku: 'MNT-002', price: 899, attrs: { 'Screen Size': '32' } }
+      ]
+    },
+    {
+      name: 'Sony WH-1000XM5', slug: 'sony-xm5', cat: 'audio', brand: 'sony',
+      variants: [
+        { sku: 'AUD-001', price: 399, attrs: { 'Transducer Element': '40mm Dynamic', 'Wireless Connection Protocol': 'Bluetooth 5.3' } }
+      ]
+    },
+    {
+      name: 'Circu Studio Pro', slug: 'circu-studio-pro', cat: 'audio', brand: 'circu-soundlabs',
+      variants: [
+        { sku: 'AUD-002', price: 599, attrs: { 'Transducer Element': '50mm Electrostatic', 'Wireless Connection Protocol': 'Bluetooth 5.4 aptX' } }
+      ]
+    },
+    {
+      name: 'Vertex Earbuds', slug: 'vertex-earbuds', cat: 'audio', brand: 'vertex',
+      variants: [
+        { sku: 'AUD-003', price: 149, attrs: { 'Transducer Element': '40mm Dynamic', 'Wireless Connection Protocol': 'Bluetooth 5.3' } }
+      ]
+    },
+    {
+      name: 'Logitech MX Master 3S', slug: 'logi-mx3s', cat: 'audio', brand: 'logitech', // just throwing it in a category
+      variants: [
+        { sku: 'AUD-004', price: 99, attrs: {} }
+      ]
+    },
+    {
+      name: 'ASUS ROG Swift 27', slug: 'asus-rog-27', cat: 'monitors', brand: 'asus',
+      variants: [
+        { sku: 'MNT-003', price: 799, attrs: { 'Screen Size': '27' } }
+      ]
+    },
+    {
+      name: 'Apple Studio Display', slug: 'apple-studio-display', cat: 'monitors', brand: 'apple',
+      variants: [
+        { sku: 'MNT-004', price: 1599, attrs: { 'Screen Size': '27' } }
+      ]
+    },
+  ];
+
+  for (const p of productsToSeed) {
+    await prisma.product.create({
+      data: {
+        name: p.name,
+        slug: p.slug,
+        description: `Experience the amazing ${p.name}.`,
+        categoryId: categories[p.cat].id,
+        brandId: brands[p.brand].id,
+        status: 'ACTIVE',
+        isFeatured: true,
+        variants: {
+          create: p.variants.map((v) => {
+            const attrCreates = Object.entries(v.attrs).map(([gName, valName]) => ({
+              attributeValueId: valId(gName, valName as string)
+            }));
+            
+            return {
+              sku: v.sku,
+              price: v.price,
+              stock: 50,
+              isActive: true,
+              attributes: {
+                create: attrCreates
+              }
+            };
+          })
+        }
+      }
+    });
+  }
 
   console.log('Seeding finished.');
 }
