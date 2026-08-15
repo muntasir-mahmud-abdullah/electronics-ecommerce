@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store";
 import { setAuth } from "@/store/slices/auth";
+import { showToast } from "@/store/slices/ui";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -12,12 +13,10 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -31,16 +30,31 @@ export default function AdminLoginPage() {
       if (res.ok) {
         // Must be SUPER_ADMIN or MANAGER
         if (data.user.role === "SUPER_ADMIN" || data.user.role === "MANAGER") {
-          dispatch(setAuth({ user: data.user, accessToken: data.token }));
+          dispatch(setAuth({ user: data.user, accessToken: data.accessToken }));
+          dispatch(
+            showToast({ message: "Admin login successful!", type: "success" }),
+          );
           router.push("/admin");
         } else {
-          setError("Unauthorized access. Admin privileges required.");
+          dispatch(
+            showToast({
+              message: "Unauthorized access. Admin privileges required.",
+              type: "error",
+            }),
+          );
         }
       } else {
-        setError(data.error || "Login failed");
+        dispatch(
+          showToast({ message: data.error || "Login failed", type: "error" }),
+        );
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      dispatch(
+        showToast({
+          message: "An unexpected error occurred. Please try again.",
+          type: "error",
+        }),
+      );
     } finally {
       setLoading(false);
     }
@@ -60,12 +74,6 @@ export default function AdminLoginPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-200">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-md">
-                {error}
-              </div>
-            )}
-            
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Email address

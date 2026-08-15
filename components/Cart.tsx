@@ -4,9 +4,10 @@ import { X, Minus, Plus, Trash2, ArrowRight } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store";
 import { setCart } from "@/store/slices/cart";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 
 interface CartProps {
   isOpen: boolean;
@@ -18,6 +19,12 @@ export function Cart({ isOpen, onClose }: CartProps) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only rendering portal on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const refreshCart = async () => {
     try {
@@ -56,7 +63,9 @@ export function Cart({ isOpen, onClose }: CartProps) {
   const handleRemove = async (itemId: string) => {
     setUpdatingId(itemId);
     try {
-      const res = await fetch(`/api/cart/items/${itemId}`, { method: "DELETE" });
+      const res = await fetch(`/api/cart/items/${itemId}`, {
+        method: "DELETE",
+      });
       if (res.ok) {
         await refreshCart();
       }
@@ -72,7 +81,9 @@ export function Cart({ isOpen, onClose }: CartProps) {
     router.push("/checkout");
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       {/* Backdrop */}
       {isOpen && (
@@ -90,7 +101,9 @@ export function Cart({ isOpen, onClose }: CartProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-[#1E2235]">
-          <h2 className="text-xl font-black text-white tracking-tight">Your Cart</h2>
+          <h2 className="text-xl font-black text-white tracking-tight">
+            Your Cart
+          </h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full bg-[#111320] border border-[#1E2235] text-[#8892A4] hover:text-white hover:border-[#2E3555] transition-all"
@@ -107,7 +120,9 @@ export function Cart({ isOpen, onClose }: CartProps) {
                 <span className="text-[#00D4E8] font-bold">G</span>
               </div>
               <p className="text-white font-bold mb-2">Your cart is empty.</p>
-              <p className="text-[#8892A4] text-sm mb-6">Looks like you haven't added anything to your cart yet.</p>
+              <p className="text-[#8892A4] text-sm mb-6">
+                Looks like you haven't added anything to your cart yet.
+              </p>
               <button
                 onClick={onClose}
                 className="bg-[#00D4E8] hover:bg-[#00BDD0] text-[#0A0C14] font-bold px-6 py-2.5 rounded-lg text-sm transition-colors"
@@ -119,7 +134,9 @@ export function Cart({ isOpen, onClose }: CartProps) {
             <div className="space-y-6">
               {cart.items.map((item) => {
                 const product = item.variant.product;
-                const price = Number(item.variant.salePrice ?? item.variant.price);
+                const price = Number(
+                  item.variant.salePrice ?? item.variant.price,
+                );
                 const isUpdating = updatingId === item.id;
 
                 // Build variant label
@@ -128,13 +145,22 @@ export function Cart({ isOpen, onClose }: CartProps) {
                   .join(" / ");
 
                 return (
-                  <div key={item.id} className={`flex gap-4 ${isUpdating ? "opacity-50 pointer-events-none" : ""}`}>
+                  <div
+                    key={item.id}
+                    className={`flex gap-4 ${isUpdating ? "opacity-50 pointer-events-none" : ""}`}
+                  >
                     {/* Image */}
                     <div className="w-20 h-20 flex-shrink-0 bg-[#111320] rounded-lg border border-[#1E2235] flex items-center justify-center overflow-hidden p-2">
                       {product.media?.[0]?.url ? (
-                        <img src={product.media[0].url} alt={product.name} className="w-full h-full object-contain" />
+                        <img
+                          src={product.media[0].url}
+                          alt={product.name}
+                          className="w-full h-full object-contain"
+                        />
                       ) : (
-                        <span className="text-[10px] text-[#8892A4]">No Img</span>
+                        <span className="text-[10px] text-[#8892A4]">
+                          No Img
+                        </span>
                       )}
                     </div>
                     {/* Details */}
@@ -152,27 +178,37 @@ export function Cart({ isOpen, onClose }: CartProps) {
                           </button>
                         </div>
                         {variantLabel && (
-                          <p className="text-[11px] text-[#8892A4] mt-1">{variantLabel}</p>
+                          <p className="text-[11px] text-[#8892A4] mt-1">
+                            {variantLabel}
+                          </p>
                         )}
                       </div>
                       <div className="flex items-end justify-between mt-3">
                         {/* Quantity controls */}
                         <div className="flex items-center bg-[#111320] border border-[#1E2235] rounded-md h-7 px-1">
                           <button
-                            onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                            onClick={() =>
+                              handleUpdateQuantity(item.id, item.quantity - 1)
+                            }
                             className="w-6 h-6 flex items-center justify-center text-[#8892A4] hover:text-white transition-colors"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="text-white text-[12px] font-bold w-6 text-center">{item.quantity}</span>
+                          <span className="text-white text-[12px] font-bold w-6 text-center">
+                            {item.quantity}
+                          </span>
                           <button
-                            onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                            onClick={() =>
+                              handleUpdateQuantity(item.id, item.quantity + 1)
+                            }
                             className="w-6 h-6 flex items-center justify-center text-[#8892A4] hover:text-white transition-colors"
                           >
                             <Plus className="w-3 h-3" />
                           </button>
                         </div>
-                        <p className="text-white font-bold text-[15px]">${price.toLocaleString()}</p>
+                        <p className="text-white font-bold text-[15px]">
+                          ${price.toLocaleString()}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -188,17 +224,23 @@ export function Cart({ isOpen, onClose }: CartProps) {
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-[13px] text-[#8892A4]">
                 <span>Subtotal</span>
-                <span className="text-white font-semibold">${cart.subtotal.toLocaleString()}</span>
+                <span className="text-white font-semibold">
+                  ${cart.subtotal.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between text-[13px] text-[#8892A4]">
                 <span>Shipping</span>
                 <span className="text-white font-semibold">
-                  {cart.shippingCost === 0 ? "Free" : `$${cart.shippingCost.toFixed(2)}`}
+                  {cart.shippingCost === 0
+                    ? "Free"
+                    : `$${cart.shippingCost.toFixed(2)}`}
                 </span>
               </div>
               <div className="border-t border-[#1E2235] pt-3 flex justify-between items-center">
                 <span className="text-sm font-bold text-white">Total</span>
-                <span className="text-xl font-black text-[#00D4E8]">${cart.total.toLocaleString()}</span>
+                <span className="text-xl font-black text-[#00D4E8]">
+                  ${cart.total.toLocaleString()}
+                </span>
               </div>
             </div>
             <button
@@ -211,6 +253,7 @@ export function Cart({ isOpen, onClose }: CartProps) {
           </div>
         )}
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
