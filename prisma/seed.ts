@@ -2,15 +2,28 @@ import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma";
 
-async function main() {
-  console.log("Seeding database...");
+const adminOnlySeed =
+  process.argv.includes("--admin-only") ||
+  process.env.SEED_ADMIN_ONLY === "true" ||
+  process.env.NODE_ENV === "production";
 
-  // 1. Create Users
+async function main() {
+  console.log(
+    adminOnlySeed
+      ? "Seeding production admin credentials only..."
+      : "Seeding database with full catalog data...",
+  );
+
   const passwordHash = await bcrypt.hash("password123", 12);
 
-  const superAdmin = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: "admin@gadgethub.local" },
-    update: {},
+    update: {
+      passwordHash,
+      name: "Super Admin",
+      role: Role.SUPER_ADMIN,
+      isActive: true,
+    },
     create: {
       email: "admin@gadgethub.local",
       name: "Super Admin",
@@ -19,9 +32,14 @@ async function main() {
     },
   });
 
-  const manager = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: "manager@gadgethub.local" },
-    update: {},
+    update: {
+      passwordHash,
+      name: "Store Manager",
+      role: Role.MANAGER,
+      isActive: true,
+    },
     create: {
       email: "manager@gadgethub.local",
       name: "Store Manager",
@@ -30,9 +48,14 @@ async function main() {
     },
   });
 
-  const customer = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: "customer@gadgethub.local" },
-    update: {},
+    update: {
+      passwordHash,
+      name: "Test Customer",
+      role: Role.CUSTOMER,
+      isActive: true,
+    },
     create: {
       email: "customer@gadgethub.local",
       name: "Test Customer",
@@ -40,6 +63,11 @@ async function main() {
       role: Role.CUSTOMER,
     },
   });
+
+  if (adminOnlySeed) {
+    console.log("Production admin credentials are present.");
+    return;
+  }
 
   // 2. Create Brands
   const brandsData = [
